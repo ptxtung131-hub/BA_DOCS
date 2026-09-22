@@ -119,7 +119,7 @@ N/A — this is a background check with no screen of its own. Its result decides
 #### 3. SCREEN DESCRIPTION
 
 Flow A: Global Default UI
-![Flow A](/assets/screenlist/CheckoutFlowA_GlobalDefault.png){center}
+![Flow A](assets/screenlist/CheckoutFlowA_GlobalDefault.png)
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
@@ -184,7 +184,7 @@ flowchart TD
 #### 3. SCREEN DESCRIPTION
 
 Waitlist UI
-![Waitlist](/assets/screenlist/CheckoutJoinwaitlist.png){center}
+![Waitlist](assets/screenlist/CheckoutJoinwaitlist.png)
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
@@ -233,7 +233,7 @@ See UC_1.1 Activity Flow, branch "Match: TRUE" at the Geo-IP Gate decision node.
 #### 3. SCREEN DESCRIPTION
 
 Flow F: Geo-Block
-![Geoblock](/assets/screenlist/CheckoutFlowF_Geoblock.png){center}
+![Geoblock](assets/screenlist/CheckoutFlowF_Geoblock.png)
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
@@ -347,7 +347,7 @@ flowchart TD
 #### 3. SCREEN DESCRIPTION
 
 Step 1: Asset Class Selection
-![Step1](/assets/screenlist/CheckoutFlow_Step1.png){center}
+![Step1](assets/screenlist/CheckoutFlow_Step1.png)
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
@@ -431,7 +431,7 @@ flowchart TD
 #### 4. SCREEN DESCRIPTION
 
 Step 2: Capital Allocation
-![Step2](/assets/screenlist/CheckoutFlow_Step2.png){center}
+![Step2](assets/screenlist/CheckoutFlow_Step2.png)
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
@@ -514,7 +514,7 @@ flowchart TD
 #### 4. SCREEN DESCRIPTION
 
 Platform Selection
-![Step3](/assets/screenlist/CheckoutFlow_Step3_Platform.png){center}
+![Step3](assets/screenlist/CheckoutFlow_Step3_Platform.png)
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
@@ -585,7 +585,7 @@ flowchart TD
 #### 3. SCREEN DESCRIPTION
 
 Market Data
-![Step4](/assets/screenlist/CheckoutFlow_Step4_MarketData.png){center}
+![Step4](assets/screenlist/CheckoutFlow_Step4_MarketData.png)
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
@@ -691,7 +691,7 @@ flowchart TD
 #### 4. SCREEN DESCRIPTION
 
 Trader Details
-![Step5](/assets/screenlist/CheckoutFlow_Step5_traderdetails.png){center}
+![Step5](assets/screenlist/CheckoutFlow_Step5_traderdetails.png)
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
@@ -849,7 +849,7 @@ flowchart TD
 #### 4. SCREEN DESCRIPTION
 
 Checkout and Payment
-![Step6](/assets/screenlist/CheckoutFlow_Step6(AddressCheckbox).png){center}
+![Step6](assets/screenlist/CheckoutFlow_Step6(AddressCheckbox).png)
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
@@ -920,7 +920,7 @@ flowchart TD
 #### 3. SCREEN DESCRIPTION
 
 Credit Card (NMI Collect.js)
-![Ccreditcard](/assets/screenlist/CheckoutFlow-Step6(Creditcard).png){center}
+![Ccreditcard](assets/screenlist/CheckoutFlow-Step6(Creditcard).png)
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
@@ -1095,7 +1095,7 @@ flowchart TD
 #### 4. SCREEN DESCRIPTION
 
 Apply Promo Code
-![promo](/assets/screenlist/CheckoutFlow-Step6(Creditcard).png){center}
+![promo](assets/screenlist/CheckoutFlow-Step6(Creditcard).png)
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
@@ -1193,7 +1193,7 @@ Apply Promo Code
 #### 4. SCREEN DESCRIPTION
 
 Payment Execution
-![Payment](/assets/screenlist/CheckoutFlow_Step7_PaymentExxecution.png){center}
+![Payment](assets/screenlist/CheckoutFlow_Step7_PaymentExxecution.png)
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
@@ -1275,7 +1275,7 @@ flowchart TD
 #### 3. SCREEN DESCRIPTION
 
 Create an Account
-![createacc](/assets/screenlist/Create_an_Account.png){center}
+![createacc](assets/screenlist/Create_an_Account.png)
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
@@ -1343,7 +1343,7 @@ flowchart TD
 #### 3. SCREEN DESCRIPTION
 
 Setting up your trading floor
-![setup](/assets/screenlist/Loading_screen.png){center}
+![setup](assets/screenlist/Loading_screen.png)
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
