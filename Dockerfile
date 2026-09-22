@@ -3,14 +3,15 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
-# Cài đặt cairo/pango (cần thiết cho các plugin xuất PDF/Image trên Linux)
+# Cài đặt các thư viện hệ thống cần thiết cho Cairo, Pango và PDF
 RUN apt-get update && apt-get install -y \
     build-essential \
-    cairo \
-    pango \
+    libcairo2-dev \
+    libpango1.0-dev \
+    poppler-utils \
     && rm -rf /var/lib/apt/lists/*
 
-# Cài đặt MkDocs Material và các plugin dự án cần
+# Cài đặt MkDocs Material và các plugin
 RUN pip install --no-cache-dir \
     mkdocs-material \
     pymdown-extensions \
