@@ -3,10 +3,19 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
-# Cài đặt MkDocs Material và các plugin mở rộng
+# Cài đặt cairo/pango (cần thiết cho các plugin xuất PDF/Image trên Linux)
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cairo \
+    pango \
+    && rm -rf /var/lib/apt/lists/*
+
+# Cài đặt MkDocs Material và các plugin dự án cần
 RUN pip install --no-cache-dir \
     mkdocs-material \
-    pymdown-extensions
+    pymdown-extensions \
+    pdf2image \
+    pillow
 
 # Copy toàn bộ mã nguồn vào container
 COPY . .
