@@ -3,7 +3,7 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
-# Cài đặt các thư viện hệ thống cần thiết cho Cairo, Pango và PDF
+# Cài đặt các thư viện hệ thống cần thiết
 RUN apt-get update && apt-get install -y \
     build-essential \
     libcairo2-dev \
@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
     poppler-utils \
     && rm -rf /var/lib/apt/lists/*
 
-# Cài đặt MkDocs Material và các plugin
+# Cài đặt MkDocs Material và các thư viện hỗ trợ
 RUN pip install --no-cache-dir \
     mkdocs-material \
     pymdown-extensions \
@@ -20,6 +20,10 @@ RUN pip install --no-cache-dir \
 
 # Copy toàn bộ mã nguồn vào container
 COPY . .
+
+# Loại bỏ khai báo plugin 'pdf2image' không hợp lệ khỏi mkdocs.yml trong lúc build
+# (Không làm ảnh hưởng hay thay đổi file code gốc của dự án)
+RUN sed -i '/- pdf2image/d' mkdocs.yml
 
 # Build tài liệu ra thư mục HTML tĩnh (/app/site)
 RUN mkdocs build
