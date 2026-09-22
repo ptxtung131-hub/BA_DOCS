@@ -849,7 +849,7 @@ flowchart TD
 #### 4. SCREEN DESCRIPTION
 
 Checkout and Payment
-![Step6](assets/screenlist/CheckoutFlow_Step6(AddressCheckbox).png)
+![Step6](assets/screenlist/CheckoutFlow_Step6_AddressCheckbox.png)
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
@@ -920,7 +920,7 @@ flowchart TD
 #### 3. SCREEN DESCRIPTION
 
 Credit Card (NMI Collect.js)
-![Ccreditcard](assets/screenlist/CheckoutFlow-Step6(Creditcard).png)
+![Ccreditcard](assets/screenlist/CheckoutFlow-Step6_Creditcard.png)
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
@@ -1095,7 +1095,7 @@ flowchart TD
 #### 4. SCREEN DESCRIPTION
 
 Apply Promo Code
-![promo](assets/screenlist/CheckoutFlow-Step6(Creditcard).png)
+![promo](assets/screenlist/CheckoutFlow-Step6_Creditcard.png)
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
