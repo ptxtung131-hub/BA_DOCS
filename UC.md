@@ -1,4 +1,5 @@
-# Associate Track Check Out
+
+# Associate Track Check Out 
 
 ## TABLE OF CONTENTS
 
@@ -9,9 +10,9 @@
 | Step 2 | UC_3 | Capital Allocation Selection |
 | Step 3 | UC_4 | Platform Selection |
 | Step 4 | UC_5 | Market Data Selection (Futures only) |
-| Step 5 | UC_6.1 – UC_6.2 | PII Capture, Compliance & Cart Abandonment |
-| Step 6 | UC_7.1 – UC_7.5 | Checkout & Payment |
-| Step 7 | UC_8.1 – UC_8.3 | Order Processing & Provisioning |
+| Step 5 | UC 6.1 – 6.2 | PII Capture, Compliance & Cart Abandonment |
+| Step 6 | UC 7.1 – 7.5 | Checkout & Payment |
+| Step 7 | UC 8.1 – 8.3 | Order Processing & Provisioning |
 
 ## STEP 0 - SYSTEM INITIALIZATION & ACCESS GATES
 
@@ -80,12 +81,10 @@ N/A — this is a background check with no screen of its own. Its result decides
 
 #### 5. MESSAGE LIST
 
-| # | Message Code | Type | Trigger |
-| --- | --- | --- | --- |
-| 1 | MSG-01 | Toast | Network error/timeout on `GET /system/status` |
-| 2 | MSG-02 | Full-page Error | HTTP 5xx from `GET /system/status` |
-
-*Full message text: see MESSAGE CATALOG at the end of this document.*
+| # | Message Code | Type | Message (EN) | Message (VN) | Trigger |
+| --- | --- | --- | --- | --- | --- |
+| 1 | MSG-01 | Toast | (Cần xác nhận) | (Cần xác nhận) | Network error/timeout on `GET /system/status` |
+| 2 | MSG-02 | Full-page Error | (Cần xác nhận) | (Cần xác nhận) | HTTPư 5xx from `GET /system/status` |
 
 ### UC_1.2 - Geo-Based Compliance UI Variants (Flow A–G)
 
@@ -124,7 +123,7 @@ Flow A: Global Default UI
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
 | 1 | Checkbox 1 — Commercial Acknowledgment | Checkbox | Yes | **Description:** Confirms user understands they are purchasing a skills-assessment evaluation, not opening a brokerage account. <br/ > **Displaying Rules:** Default unchecked, all flows except F. Exact text: *"I acknowledge that I am purchasing a skills assessment software evaluation for commercial purposes to secure an independent contractor agreement with a US-domiciled C-Corporation, and I am not opening a retail financial, brokerage, or investment account."* <br/ > **Behaviour Rules:** N/A. <br/ > **Validation Rules:** Must be checked before [Next] enables. |
-| 2 | Checkbox 2 — Age & ToS | Checkbox | Yes | **Description:** Confirms age ≥18 and agreement to ToS. <br/ > **Displaying Rules:** Default unchecked. Text: *"By clicking 'Complete Purchase', I confirm that I am at least 18 years of age and agree to the Terms of Service for the Data Processing and Performance Evaluation Service (Associate Track)."* The words "Terms of Service" are a clickable hyperlink. <br/ > **Behaviour Rules:** Click "Terms of Service" → opens Modal `MDL-01` with ToS content (same as public `/terms` page) — does NOT navigate away or reset checkout. Closing modal preserves all form state. <br/ > **Validation Rules:** Must be checked before [Next] enables. |
+| 2 | Checkbox 2 — Age & ToS | Checkbox | Yes | **Description:** Confirms age ≥18 and agreement to ToS. <br/ > **Displaying Rules:** Default unchecked. Text: *"By clicking 'Complete Purchase', I confirm that I am at least 18 years of age and agree to the Terms of Service for the Data Processing and Performance Evaluation Service (Associate Track)."* The words "Terms of Service" are a clickable hyperlink. <br/ > **Behaviour Rules:** Click "Terms of Service" → opens popup/modal with ToS content (same as public `/terms` page) — does NOT navigate away or reset checkout. Closing popup preserves all form state. <br/ > **Validation Rules:** Must be checked before [Next] enables. |
 | 3 | Checkbox 3 — EU Withdrawal Waiver (Flow C only) | Checkbox | Yes (Flow C only) | **Description:** EU-specific 14-day withdrawal waiver, legally required for EU/EEA. <br/ > **Displaying Rules:** Only rendered for Flow C. Default unchecked. Text: *"I expressly consent to the immediate commencement of the digital evaluation service and waive my 14-day right of withdrawal under EU consumer protection law."* Positioned between standard checkboxes and [Next]. <br/ > **Behaviour Rules:** N/A. <br/ > **Validation Rules:** Must be checked before [Next] enables (Flow C only). |
 | 4 | Pass-Rate Disclosure (Flow B, C) | Static Text | N/A | **Description:** Discloses historical pass rate or launch-phase unavailability. <br/ > **Displaying Rules:** Above standard checkboxes. If `is_launch_phase = TRUE`: *"This is a newly launched proprietary trading evaluation program. Historical pass-rate and success data is currently unavailable."* Else: *"Historically, only [historical_pass_rate]% of participants successfully pass the evaluation to become authorized traders."* Same text for UK & Australia. <br/ > **Behaviour/Validation:** N/A. |
 | 5 | UAE Disclaimer (Flow E) | Static Text | N/A | **Description:** Discloses non-regulation status in UAE. <br/ > **Displaying Rules:** Above standard checkboxes, Flow E only. Text: *"Stack Trading is a U.S.-domiciled entity and is not licensed, registered, or regulated by the Dubai Financial Services Authority (DFSA) or the Abu Dhabi Global Market (ADGM)."* |
@@ -139,7 +138,7 @@ Flow A: Global Default UI
 
 #### 5. MESSAGE LIST
 
-N/A — this UC has no error/toast messages of its own; all content is static. (Modal `MDL-01` is referenced in §3 row 2 — see MODAL CATALOG at the end of this document.)
+N/A — this UC has no error/toast messages of its own; all content is static.
 
 ### UC_1.3 — Gate 1: Waitlist
 
@@ -154,9 +153,9 @@ N/A — this UC has no error/toast messages of its own; all content is static. (
 | **Pre-Condition(s)** | User is on checkout page. `GET /system/status` returns `Global_Var_Allow_New_Signups == FALSE`. |
 | **Trigger** | `Global_Var_Allow_New_Signups == FALSE` detected in `/system/status` response. |
 | **Post-Condition(s)** | Direct API calls fired to BOTH Klaviyo and ActiveCampaign with email + UTM. Page shows success state. |
-| **Basic Flow** | 1. `/system/status` returns flag FALSE. <br/ > 2. Frontend redirects (client-side, same tab) to dedicated Waitlist page — Marketing Header/Footer rendered. <br/ > 3. User selects Primary Market (Futures/Forex). <br/ > 4. User enters email. <br/ > 5. User clicks [Join Waitlist] (button behavior: Ref `CR-06`). <br/ > 6. Frontend reads UTM per `CR-05`, calls Klaviyo + ActiveCampaign APIs directly and in parallel. <br/ > 7. On success → success state (`MSG-03`). <br/ > 8. User clicks [Return to Homepage] → navigated to homepage. |
+| **Basic Flow** | 1. `/system/status` returns flag FALSE. <br/ > 2. Frontend redirects (client-side, same tab) to dedicated Waitlist page — Marketing Header/Footer rendered. <br/ > 3. User selects Primary Market (Futures/Forex). <br/ > 4. User enters email. <br/ > 5. User clicks [Join Waitlist]. <br/ > 6. Button → "Processing..." (disabled). Frontend reads UTM from `localStorage`, calls Klaviyo + ActiveCampaign APIs directly and in parallel. <br/ > 7. On success → success state. <br/ > 8. User clicks [Return to Homepage] → navigated to homepage. |
 | **List Screen** | Waitlist Page |
-| **Exception Flow** | E1 — CRM API fails on submit (`MSG-04`): Button reverts to "Join Waitlist" (enabled). Form data NOT cleared. |
+| **Exception Flow** | E1 — CRM API fails on submit: Button reverts to "Join Waitlist" (enabled). Form data NOT cleared. |
 
 #### 2. ACTIVITY FLOW
 
@@ -166,12 +165,12 @@ flowchart TD
         A([Start]) --> B[Select Primary Market]
         B --> C[Enter Email]
         C --> D[Click Join Waitlist]
-        H[See MSG-03 success state] --> I([End - Return to Homepage])
-        J[See MSG-04 error banner] --> D
+        H[See success state] --> I([End - Return to Homepage])
+        J[See error banner] --> D
     end
 
     subgraph System
-        E[Button to Processing state - Ref CR-06<br/>Read UTM - Ref CR-05]
+        E[Button to Processing state<br/>Read UTM from localStorage]
         F[Call Klaviyo API<br/>+ ActiveCampaign API<br/>in parallel]
         G{Both calls succeed?}
     end
@@ -188,9 +187,9 @@ Waitlist UI
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
-| 1 | Primary Market | Dropdown (Single-selection) | Yes | **Description:** Lets user indicate which market they intend to trade. <br/ > **Displaying/Behaviour Rules:** Ref `CR-01`. Placeholder *"Select primary market"*. Options: `Futures`, `Forex`, `Crypto`. <br/ > **Validation Rules:** Required — inline error if empty on submit. |
-| 2 | Email | Textbox | Yes | **Description:** Captures lead email for CRM. <br/ > **Validation Rules:** Ref `CR-02`. |
-| 3 | [Join Waitlist] | Button (Primary) | N/A | **Description:** Submits lead to CRM systems. <br/ > **Behaviour Rules:** Ref `CR-06`. On click → validate all fields; invalid → inline errors, no submit. Valid → "Processing..." → parallel Klaviyo + ActiveCampaign calls with email + UTM (`CR-05`). On CRM fail → reverts to enabled, shows `MSG-04`. |
+| 1 | Primary Market | Dropdown (Single-selection) | Yes | **Description:** Lets user indicate which market they intend to trade. <br/ > **Displaying Rules:** Placeholder *"Select primary market"*. Options: `Futures`, `Forex`, `Crypto`. <br/ >  **Behaviour Rules:** On-click: shows all options. <br/ > **Validation Rules:** Required — inline error if empty on submit. |
+| 2 | Email | Textbox | Yes | **Description:** Captures lead email for CRM. <br/ >  **Displaying Rules:** Placeholder *"Enter email"*. <br/ >  **Validation Rules:** Required, valid format. |
+| 3 | [Join Waitlist] | Button (Primary) | N/A | **Description:** Submits lead to CRM systems. <br/ >  **Behaviour Rules:** On click → validate all fields; invalid → inline errors, no submit. Valid → "Processing..." (disabled) → parallel Klaviyo + ActiveCampaign calls with email + UTM. On CRM fail → reverts to enabled. |
 
 #### 4. BUSINESS RULES
 
@@ -198,16 +197,14 @@ Waitlist UI
 | --- | --- | --- | --- |
 | 1 | BR_1.3.1 | Global Scope | `Global_Var_Allow_New_Signups == FALSE` is a global toggle — redirects ALL countries simultaneously. |
 | 2 | BR_1.3.2 | No Interrupt Logic | If the flag changes to FALSE mid-checkout (user started when TRUE), the user completes the ENTIRE flow uninterrupted. Frontend does not re-check after initial load. |
-| 3 | BR_1.3.3 | CRM-Side Deduplication (No Info Leakage) | No custom backend dedup check exists. Klaviyo/ActiveCampaign handle identity resolution natively. If email already exists, CRM silently dedupes/updates to prevent revealing whether an email is already registered. (Same intent as `CR-12`, applied here to a 3rd-party CRM rather than an internal endpoint.) |
+| 3 | BR_1.3.3 | CRM-Side Deduplication (No Info Leakage) | No custom backend dedup check exists. Klaviyo/ActiveCampaign handle identity resolution natively. If email already exists, CRM silently dedupes/updates to prevent revealing whether an email is already registered. |
 
 #### 5. MESSAGE LIST
 
-| # | Message Code | Type | Trigger |
-| --- | --- | --- | --- |
-| 1 | MSG-03 | Alert (Popup) — Success | Waitlist join succeeds |
-| 2 | MSG-04 | Error (Banner) | CRM API fails on Waitlist submit |
-
-*Full message text: see MESSAGE CATALOG at the end of this document.*
+| # | Message Code | Type | Message (EN) | Message (VN) | Trigger |
+| --- | --- | --- | --- | --- | --- |
+| 1 | MSG_01 | Alert (Popup) — Success | (Cần xác nhận) | (Cần xác nhận) | Waitlist join succeeds |
+| 2 | MSG-02 | Error (Banner) | (Cần xác nhận) | (Cần xác nhận) | CRM API fails on Waitlist submit |
 
 ### UC_1.4 — Gate 2: Geoblock
 
@@ -221,8 +218,8 @@ Waitlist UI
 | **Actor(s)** | System, Cloudflare |
 | **Pre-Condition(s)** | N/A |
 | **Trigger** | `GET /system/status` returns HTTP 403 (`geo_blocked == true`, `CF-IPCountry`/`CF-Region` matches `Compliance_geo_restrictions`). |
-| **Post-Condition(s)** | Entire checkout UI replaced by hard-stop block page (`FPS-01`). User cannot proceed. |
-| **Basic Flow** | 1. `/system/status` returns HTTP 403. <br/ > 2. Frontend renders full-page block (`FPS-01`) replacing entire checkout UI — no header/nav/footer/step indicators/appeal link. |
+| **Post-Condition(s)** | Entire checkout UI replaced by hard-stop block page. User cannot proceed. |
+| **Basic Flow** | 1. `/system/status` returns HTTP 403. <br/ > 2. Frontend renders full-page block replacing entire checkout UI — no header/nav/footer/step indicators/appeal link. |
 | **List Screen** | Gate 2 — Geoblock (full-page) |
 | **Exception Flow** | N/A |
 
@@ -237,7 +234,7 @@ Flow F: Geo-Block
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
-| 1 | Full-page block message (`FPS-01`) | Static Text | N/A | **Description:** Sole content of the page — no header, nav, footer, step indicator, or appeal link. <br/ > **Displaying Rules:** Text: `MSG-05`. <br/ > **Behaviour Rules:** Page is a dead end. Button: Return to homepage. <br/ > **Validation Rules:** N/A. |
+| 1 | Full-page block message | Static Text | N/A | **Description:** Sole content of the page — no header, nav, footer, step indicator, or appeal link. <br/ > **Displaying Rules:** Content includes a support contact email. <br/ > **Behaviour Rules:** Page is a dead end. Button: Return to homepage <br/ > **Validation Rules:** N/A. |
 
 #### 4. BUSINESS RULES
 
@@ -247,11 +244,9 @@ Flow F: Geo-Block
 
 #### 5. MESSAGE LIST
 
-| # | Message Code | Type | Trigger |
-| --- | --- | --- | --- |
-| 1 | MSG-05 | Error (Full-page) | `geo_blocked = true` from `/system/status` |
-
-*Full message text: see MESSAGE CATALOG at the end of this document.*
+| # | Message Code | Type | Message (EN) | Message (VN) | Trigger |
+| --- | --- | --- | --- | --- | --- |
+| 1 | MSG-01 | Error (Full-page) | "Service Unavailable — Stack Trading's evaluation services are not available in your region due to regulatory restrictions. We are unable to process registrations or accept payments from your current location. If you believe this is an error, please contact `support@stacktrading.com` with your location details." | (Cần xác nhận) | `geo_blocked = true` from `/system/stadưtus` |
 
 ### UC_1.5 — Pricing Engine
 
@@ -265,25 +260,25 @@ Flow F: Geo-Block
 | **Actor(s)** | System |
 | **Pre-Condition(s)** | `is_founder_cohort` and `pricing_tiers` available in global checkout state (from Step 0). |
 | **Trigger** | Step 2 renders. |
-| **Post-Condition(s)** | Correct pricing (Founder or Standard) displayed on all 3 cards, formatted per `CR-04`. |
+| **Post-Condition(s)** | Correct pricing (Founder or Standard) displayed on all 3 cards. |
 | **Basic Flow** | 1. Frontend reads `is_founder_cohort` from state. <br/ > 2. If TRUE → render Founder Price column values with strikethrough Standard price. <br/ > 3. If FALSE → render Standard price + "one-time" label. |
 | **List Screen** | Step 2 (Capital Allocation Selection) |
-| **Exception Flow** | E1 — Race Condition (Stale Pricing, `MSG-06`): triggered at Step 6 [Pay] click if Founder cohort sold out or tax changed between `/calculate-cart` and `/execute-checkout` → backend returns `PRICE_CHANGED`. |
+| **Exception Flow** | E1 — Race Condition (Stale Pricing): triggered at Step 6 [Pay] click if Founder cohort sold out or tax changed between `/calculate-cart` and `/execute-checkout` → backend returns `PRICE_CHANGED`. |
 
 #### 2. ACTIVITY FLOW
 
-Governed entirely by state read at Step 0; see UC_3 (Step 2) Screen Description for rendered result.
+Governed entirely by state read at Step 0; see UC_2.3 (Step 2) Screen Description for rendered result.
 
 #### 3. SCREEN DESCRIPTION
 
-N/A — this UC has no unique screen; its output is rendered inside UC_3's pricing cards (Step 2).
+N/A — this UC has no unique screen; its output is rendered inside UC_2.3's pricing cards (Step 2).
 
 #### 4. BUSINESS RULES
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
-| 1 | BR_1.5.1 | Founder Cohort Detection | `is_founder_cohort = TRUE` → display Founder Price column (Table J). `FALSE` → Challenge Price column. Prices never hardcoded in FE — always read from `pricing_tiers`. Display format: Ref `CR-04`. |
-| 2 | BR_1.5.2 | Race Condition — Stale Pricing | Triggered at Step 6 Pay click if server-side re-check detects Founder cohort sold out (reverts to Standard) OR tax rate changed since `/calculate-cart`. Returns `PRICE_CHANGED` — no charge, no promo reservation. `MSG-06` shown; [Refresh now] closes overlay + refreshes Order Summary, no full reload. |
+| 1 | BR_1.5.1 | Founder Cohort Detection | `is_founder_cohort = TRUE` → display Founder Price column (Table J). `FALSE` → Challenge Price column. Prices never hardcoded in FE — always read from `pricing_tiers`. |
+| 2 | BR_1.5.2 | Race Condition — Stale Pricing | Triggered at Step 6 Pay click if server-side re-check detects Founder cohort sold out (reverts to Standard) OR tax rate changed since `/calculate-cart`. Returns `PRICE_CHANGED` — no charge, no promo reservation. [Refresh now] closes overlay + refreshes Order Summary, no full reload. |
 | 3 | BR_1.5.3 | Price Data Source | Founder/Standard prices for all 3 tiers stored in Zapier Table J. Backend packs into `pricing_tiers` at Step 3e of `/system/status`. No additional API call needed at Step 2. |
 
 **Current Table J Snapshot (Ops-editable, source of truth = Zapier, not this doc):**
@@ -296,11 +291,9 @@ N/A — this UC has no unique screen; its output is rendered inside UC_3's prici
 
 #### 5. MESSAGE LIST
 
-| # | Message Code | Type | Trigger |
-| --- | --- | --- | --- |
-| 1 | MSG-06 | Alert (Popup) | `PRICE_CHANGED` returned at `/execute-checkout` |
-
-*Full message text: see MESSAGE CATALOG at the end of this document. (Note: same event/message also referenced from UC_8.1 §6 — defined once here to avoid duplication.)*
+| # | Message Code | Type | Message (EN) | Message (VN) | Trigger |
+| --- | --- | --- | --- | --- | --- |
+| 1 | MSG_01 | Alert (Popup) | (Cần xác nhận) | (Cần xác nhận) | `PRICE_CHANGED` returned at `/execute-checkout` |
 
 ## STEP 1 — ASSET CLASS SELECTION
 
@@ -317,7 +310,7 @@ N/A — this UC has no unique screen; its output is rendered inside UC_3's prici
 | **Pre-Condition(s)** | `Global_Var_Allow_New_Signups == TRUE`. `geo_blocked == FALSE`. `/system/status` response stored in state. |
 | **Trigger** | User passes Gate 1 and Gate 2 at Step 0. |
 | **Post-Condition(s)** | `asset_class` stored in session state. User proceeds to Step 2. |
-| **Basic Flow** | 1. Step 1 renders 2 cards: Futures, Forex. <br/ > 2. User clicks one card. <br/ > 3. Selection stored (persistence: Ref `CR-07`). <br/ > 4. User clicks [Next] to proceed. |
+| **Basic Flow** | 1. Step 1 renders 2 cards: Futures, Forex. <br/ > 2. User clicks one card. <br/ > 3. Selection stored. <br/ > 4. User clicks [Next] to proceed. |
 | **List Screen** | Step 1 (Asset Class Selection) |
 | **Exception Flow** | N/A |
 
@@ -353,15 +346,15 @@ Step 1: Asset Class Selection
 | --- | --- | --- | --- | --- |
 | 1 | Futures | Radio Group | Yes | **Description:** Selects Futures as the trading asset class. <br/ > **Displaying Rules:** Title *"Futures"*, subtitle *"via CME"*. Default unselected. <br/ > **Behaviour Rules:** On click → stores `asset_class='FUTURES'`, deselects Forex if selected. If switching FROM Forex: Step 3 platform selection resets, Step 4 (Market Data) re-added to flow, progress bar updates to 7 steps. <br/ > **Validation Rules:** N/A. |
 | 2 | Forex | Radio Group | Yes | **Description:** Selects Forex as the trading asset class. <br/ > **Displaying Rules:** Title *"Forex"*, subtitle *"Currency pairs"*. Default unselected. <br/ > **Behaviour Rules:** On click → stores `asset_class='FOREX'`, deselects Futures if selected. If switching FROM Futures: Step 3 platform selection resets, Step 4 removed from flow, progress bar updates to 6 steps. <br/ > **Validation Rules:** N/A. |
-| 3 | [Next] | Button (Primary) | N/A | **Description:** Proceeds to Step 2. <br/ > **Behaviour Rules:** Ref `CR-06`. Disabled until one asset class selected; on click when enabled → navigate to Step 2. <br/ > **Validation Rules:** N/A. |
+| 3 | [Next] | Button (Primary) | N/A | **Description:** Proceeds to Step 2. <br/ > **Displaying Rules:** N/A. <br/ > **Behaviour Rules:** Disabled until one asset class selected; on click when enabled → navigate to Step 2. <br/ > **Validation Rules:** N/A. |
 
 #### 4. BUSINESS RULES
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
 | 1 | BR_2.1 | Fixed Options | 2 options (Futures, Forex) hardcoded in FE — not API-driven. Both always displayed. |
-| 2 | BR_2.2 | Session Persistence | Ref `CR-07`. Selection stored in session state for duration of checkout — refresh does NOT return user to Step 1 if local storage cart state is present. |
-| 3 | BR_2.3 | Asset Class Change — Progress Bar & Step Count Impact | **Futures:** 7 steps (1→2→3→4→5→6→7). <br/ > **Forex:** 6 steps (1→2→3→5→6→7, Step 4 omitted). Applies on initial selection AND when navigating back to change selection. Futures→Forex: Step 3 selection reset, Step 4 removed, bar → 6 steps. Forex→Futures: Step 3 reset, Step 4 added back, bar → 7 steps. <br/ > **Step 5 data is NOT reset** on asset class change — only cleared on full page refresh (this is the one exception to `CR-07`'s general back-navigation persistence rule). |
+| 2 | BR_2.2 | Session Persistence | Selection stored in session state for duration of checkout. — refresh does NOT return user to Step 1 if local storage cart state is present. |
+| 3 | BR_2.3 | Asset Class Change — Progress Bar & Step Count Impact | **Futures:** 7 steps (1→2→3→4→5→6→7). <br/ > **Forex:** 6 steps (1→2→3→5→6→7, Step 4 omitted). Applies on initial selection AND when navigating back to change selection. Futures→Forex: Step 3 selection reset, Step 4 removed, bar → 6 steps. Forex→Futures: Step 3 reset, Step 4 added back, bar → 7 steps. <br/ > **Step 5 data is NOT reset** on asset class change — only cleared on full page refresh. |
 
 #### 5. MESSAGE LIST
 
@@ -382,7 +375,7 @@ N/A — no error/toast messages in this UC.
 | **Pre-Condition(s)** | `asset_class` in session state. `/system/status` pricing data in global checkout state. |
 | **Trigger** | User clicks [Next] at Step 1 with an asset class selected. |
 | **Post-Condition(s)** | `product_id` (EVAL_L1/L2/L5) stored in session state. User proceeds to Step 3. |
-| **Basic Flow** | 1. Step 2 renders 3 pricing cards (Advanced, Accelerated, Associate). <br/ > 2. User clicks a card (or [Select Track] button) to select. <br/ > 3. User clicks [Next]. |
+| **Basic Flow** | 1. Step 2 renders 3 pricing cards (Advanced, Accelerated, Associate). 2. User clicks a card (or [Select Track] button) to select. 3. User clicks [Next]. |
 | **List Screen** | Step 2 (Capital Allocation Selection) |
 | **Exception Flow** | N/A |
 
@@ -409,7 +402,7 @@ flowchart TD
     G --> I
 ```
 
-> **Note:** `Daily Loss Limit` (`Daily_Loss_Ratio × max_drawdown`) is a backend/ops metric — it is **NOT displayed** in the Step 2 checkout UI. `Daily_Loss_Ratio` is read from Table C at runtime but never surfaced to the user at this step.
+> **Note (source doc, new):** `Daily Loss Limit` (`Daily_Loss_Ratio × max_drawdown`) is a backend/ops metric — it is **NOT displayed** in the Step 2 checkout UI. `Daily_Loss_Ratio` is read from Table C at runtime but never surfaced to the user at this step.
 
 #### 3. EVALUATION PACKAGE DATA (reference)
 
@@ -426,8 +419,6 @@ flowchart TD
 | Live Stop Loss | $10,500 | $2,500 | $1,250 |
 | Live Profit Target | $14,100 | $3,750 | $1,875 |
 
-*All monetary values in this table follow the display format in `CR-04`.*
-
 #### 4. SCREEN DESCRIPTION
 
 Step 2: Capital Allocation
@@ -435,18 +426,18 @@ Step 2: Capital Allocation
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
-| 1 | Pricing Card ×3 — Top | Radio Group | Yes | **Description:** Selects the Evaluation Package tier. <br/ > **Displaying Rules:** 3 cards left-to-right: Advanced · Accelerated · Associate. Each shows: Status Ribbon, Track name, Price block (`CR-04`), Evaluation Requirements box, [Select Track] button. Standard mode: Standard Price + "one-time". Founder mode: Standard Price (strikethrough) + Founder Price (full size), no "one-time" label. Evaluation Requirements box row 2 renders `"{target}% Target / {stop}% Stop, 60 days"` dynamically from Table C. No card pre-selected by default. <br/ > **Behaviour Rules:** Click anywhere on card OR [Select Track] → selects tier, stores `product_id`, deselects previous card. <br/ > **Validation Rules:** N/A. |
+| 1 | Pricing Card ×3 — Top | Radio Group | Yes | **Description:** Selects the Evaluation Package tier. <br/ > **Displaying Rules:** 3 cards left-to-right: Advanced · Accelerated · Associate. Each shows: Status Ribbon, Track name, Price block, Evaluation Requirements box, [Select Track] button. Standard mode: Standard Price + "one-time". Founder mode: Standard Price (strikethrough) + Founder Price (full size), no "one-time" label. Evaluation Requirements box row 2 renders `"{target}% Target / {stop}% Stop, 60 days"` dynamically from Table C. No card pre-selected by default. <br/ > **Behaviour Rules:** Click anywhere on card OR [Select Track] → selects tier, stores `product_id`, deselects previous card. <br/ > **Validation Rules:** N/A. |
 | 2 | Pricing Card ×3 — Bottom | Static Display | N/A | **Description:** Shows the Live Account & Career Path preview upon passing. <br/ > **Displaying Rules:** Always visible, not collapsible. Header: *"Live Account & Career Path (Upon Passing)"*. Fields: Career Ladder Entry, Distance to W2 (1/4/5 Promotions Away), Live Capital Allocation, Live Stop Loss (with "Firm takes 100% of the risk" + tooltip), Live Profit Target. |
-| 3 | Live Stop Loss — Tooltip ⓘ | Tooltip | N/A | **Description:** Explains firm-absorbed risk. <br/ > **Behaviour Rules:** On hover → shows: *"If you pass the evaluation, the firm backs your account with this exact amount of real capital at risk. We absorb the losses so you can focus on execution."* |
+| 3 | Live Stop Loss — Tooltip ⓘ | Tooltip | N/A | <br/ > **Description:** Explains firm-absorbed risk. <br/ > **Behaviour Rules:** On hover → shows: *"If you pass the evaluation, the firm backs your account with this exact amount of real capital at risk. We absorb the losses so you can focus on execution."* |
 | 4 | [Select Track] | Button (Secondary) | N/A | **Description:** Per-card select button. <br/ > **Behaviour Rules:** Equivalent to clicking card body. |
-| 5 | [Back] | Button (Secondary) | N/A | **Behaviour Rules:** Navigates back to Step 1. Data persistence: Ref `CR-07`. |
-| 6 | [Next] | Button (Primary) | N/A | **Validation Rules:** Disabled until a card is selected. <br/ > **Behaviour Rules:** Ref `CR-06`. On click → navigate to Step 3. |
+| 5 | [Back] | Button (Secondary) | N/A | **Behaviour Rules:** Navigates back to Step 1. |
+| 6 | [Next] | Button (Primary) | N/A | **Validation Rules:** Disabled until a card is selected. <br/ > **Behaviour Rules:** On click → navigate to Step 3. |
 
 #### 5. BUSINESS RULES
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
-| 1 | BR_3.1 | Pricing Mode — Standard vs Founder | `is_founder_cohort=TRUE` → strikethrough Standard + full-size Founder, no "one-time" label. `FALSE` → Standard price + "one-time" label. Display format: Ref `CR-04`. |
+| 1 | BR_3.1 | Pricing Mode — Standard vs Founder | `is_founder_cohort=TRUE` → strikethrough Standard + full-size Founder, no "one-time" label. `FALSE` → Standard price + "one-time" label. |
 | 2 | BR_3.2 | Card Selection | Only one card selectable at a time; new selection deselects previous. [Next] disabled until a card is selected. |
 
 #### 6. MESSAGE LIST
@@ -470,7 +461,7 @@ N/A — no error/toast messages in this UC.
 | **Post-Condition(s)** | `platform` stored in session state. User proceeds to Step 4 (Futures) or Step 5 (Forex). |
 | **Basic Flow** | 1. Step 3 renders. <br/ > 2. Frontend calls `GET /public/platform-options?asset_class=[asset_class]`. <br/ > 3. Platform options render as logo tiles. <br/ > 4. User clicks a tile → stored. <br/ > 5. User clicks [Next]. |
 | **List Screen** | Step 3 (Platform Selection) |
-| **Exception Flow** | E1 — Empty array returned (`MSG-07`). <br/ > E2 — HTTP 500/timeout (`MSG-08`). |
+| **Exception Flow** | E1 — Empty array returned. <br/ > E2 — HTTP 500/timeout |
 
 #### 2. ACTIVITY FLOW
 
@@ -485,8 +476,8 @@ flowchart TD
     subgraph System
         B[Call GET /public/platform-options?asset_class=X]
         C{Response?}
-        D1[Render MSG-07<br/>No platforms available]
-        D2[Render MSG-08<br/>Full-page error]
+        D1[Render No platforms available]
+        D2[Render Full-page error]
         D3[Render platform tiles<br/>1 result: auto pre-select]
         G[Store platform in session state]
         H([Proceed to Step 4 - Futures<br/>or Step 5 - Forex])
@@ -501,7 +492,7 @@ flowchart TD
 
 #### 3. PLATFORM REGISTRY (Zapier Table I — snapshot)
 
-| Platform Name | Asset Class | Gateway | Is_Active | Risk_Group_Template |
+| Platform Name | Asset Class | Gateway | Is_Active | Risk_Group_Template *(new)* |
 | --- | --- | --- | --- | --- |
 | **TradeSea** (was NinjaTrader 8) | Futures | Rithmic | TRUE | Sim_Rithmic_Default |
 | Quantower | Futures | Rithmic | TRUE | Sim_Rithmic_Default |
@@ -518,9 +509,9 @@ Platform Selection
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
-| 1 | Platform Tiles | Radio Group | Yes | **Description:** Logo-driven platform selector. <br/ > **Displaying Rules:** API returns only `Platform_Name` strings — no logo/icon in response; FE maps each name to a local static logo asset. Default unselected, unless only 1 option returned → auto pre-selected (still requires [Next] click, no auto-advance). <br/ > **Behaviour Rules:** On click → select tile, deselect previous, store `platform`. <br/ > **Validation Rules:** N/A. |
-| 2 | [Back] | Button (Secondary) | N/A | **Behaviour Rules:** Navigate back to Step 2. Data persistence: Ref `CR-07`. |
-| 3 | [Next] | Button (Primary) | N/A | **Behaviour Rules:** Ref `CR-06`. Disabled until a tile is selected. On click → navigate to Step 4 (Futures) or Step 5 (Forex). |
+| 1 | Platform Tiles | Radio Group | Yes | **Description:** Logo-driven platform selector. <br/ > **Displaying Rules:** API returns only `Platform_Name` strings — no logo/icon in response; FE maps each name to a local static logo asset. Default unselected, unless only 1 option returned → auto pre-selected, still requires [Next] click, no auto-advance). <br/ > **Behaviour Rules:** On click → select tile, deselect previous, store `platform`. <br/ > **Validation Rules:** N/A. |
+| 2 | [Back] | Button (Secondary) | N/A | **Behaviour Rules:** Navigate back to Step 2. |
+| 3 | [Next] | Button (Primary) | N/A | **Behaviour Rules:** Disabled until a tile is selected. On click → navigate to Step 4 (Futures) or Step 5 (Forex). |
 
 #### 5. BUSINESS RULES
 
@@ -528,16 +519,14 @@ Platform Selection
 | --- | --- | --- | --- |
 | 1 | BR_4.1 | Dynamic List — No Hardcoding | Options fetched from `GET /public/platform-options?asset_class=X`. Response is only `{ "platforms": [string] }` — no icon field. Logos are static FE assets mapped by name. |
 | 2 | BR_4.2 | Pre-selection with 1 Result | 1 platform returned → auto pre-select (highlighted). User must still click [Next] — no auto-advance. |
-| 3 | BR_4.3 | Navigation — Back from Later Steps | Ref `CR-07`. Changing platform via back-navigation from Step 5 does NOT reset Step 4 (Market Data) or Step 5 data — independent. |
+| 3 | BR_4.3 | Navigation — Back from Later Steps | Changing platform via back-navigation from Step 5 does NOT reset Step 4 (Market Data) or Step 5 data — independent. |
 
 #### 6. MESSAGE LIST
 
-| # | Message Code | Type | Trigger |
-| --- | --- | --- | --- |
-| 1 | MSG-07 | Alert (Popup) | `GET /public/platform-options` returns empty array |
-| 2 | MSG-08 | Error (Full-page) | HTTP 500 or network timeout |
-
-*Full message text: see MESSAGE CATALOG at the end of this document.*
+| # | Message Code | Type | Message (EN) | Message (VN) | Trigger |
+| --- | --- | --- | --- | --- | --- |
+| 1 | MSG-01 | Alert (Popup) | (Cần xác nhận) | (Cần xác nhận) | `GET /public/platform-options` returns empty array |
+| 2 | MSG-02 | Error (Full-page) | (Cần xác nhận) | (Cần xác nhận) | HTTP 500 or network timeout |
 
 ## STEP 4 — MARKET DATA SELECTION (FUTURES ONLY)
 
@@ -556,7 +545,7 @@ Platform Selection
 | **Post-Condition(s)** | `addon_ids[]` stored in session state. User proceeds to Step 5. |
 | **Basic Flow** | 1. Step 4 renders. <br/ > 2. Frontend calls `GET /public/market-data-products` (backend reads product list + prices from Table C — never hardcoded). <br/ > 3. Toggle grid renders. <br/ > 4. CME: pre-checked, locked. <br/ > 5. User toggles optional feeds (NYMEX/CBOT/COMEX). <br/ > 6. All selected feeds show `"Cost: $0.00 (Covered by Stack Trading)"`. <br/ > 7. User clicks [Next]. |
 | **List Screen** | Step 4 (Market Data Selection) — Forex users skip this step entirely |
-| **Exception Flow** | E1 — 0 products returned (`MSG-09`), treated as system error. |
+| **Exception Flow** | E1 — 0 products returned: Ref FP-03, treated as system error. |
 
 #### 2. ACTIVITY FLOW
 
@@ -571,7 +560,7 @@ flowchart TD
     subgraph System
         B[Call GET /public/market-data-products<br/>reads from Zapier Table C]
         C{0 products returned?}
-        C1[Render MSG-09<br/>System error]
+        C1[Render System error]
         C2[Render grid<br/>CME pre-checked + locked]
         F[Store addon_ids array<br/>in session state]
         G([Proceed to Step 5])
@@ -590,8 +579,8 @@ Market Data
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
 | 1 | CME Feed | Toggle/Switch | Yes (locked) | **Description:** Mandatory base data feed. <br/ > **Displaying Rules:** ON label *"CME Level 2"*. Default ON, "Most Popular" badge. <br/ > **Behaviour Rules:** Always ON, non-toggleable — always included in `addon_ids[]`. |
-| 2 | Optional Feeds (NYMEX/CBOT/COMEX) | Toggle/Switch ×3 | No | **Description:** Additional exchange feeds. <br/ > **Displaying Rules:** Default OFF for all. Cost display: *"Cost: $0.00 (Covered by Stack Trading)"*. <br/ > **Behaviour Rules:** Toggle ON → add to `addon_ids[]`; OFF → remove. Selections preserved on back-navigation (Ref `CR-07`). |
-| 3 | Market Data Lifecycle Disclosure | Static Text | N/A | **Displaying Rules:** Static, non-collapsible, always visible, below the feed grid. Line 1: *"Associate Track Evaluation: The Firm pays 100% of data costs."* Line 2: *"Level 1 and 2: The Trader pays (Standard Exchange Professional Data rates apply)."* Line 3: *"Level 3: The Trader is fully reimbursed for all Base CME market data costs incurred during Levels 1 and 2."* (Reimbursement is scoped specifically to **Base CME** costs, not all data costs.) Line 4: *"Level 3 to Level 24: The Firm covers 100% of Base CME data costs."* |
+| 2 | Optional Feeds (NYMEX/CBOT/COMEX) | Toggle/Switch ×3 | No | **Description:** Additional exchange feeds. <br/ > **Displaying Rules:** Default OFF for all. Cost display: *"Cost: $0.00 (Covered by Stack Trading)"*. <br/ > **Behaviour Rules:** Toggle ON → add to `addon_ids[]`; OFF → remove. Selections preserved on back-navigation. |
+| 3 | Market Data Lifecycle Disclosure | Static Text | N/A | **Displaying Rules:** Static, non-collapsible, always visible, below the feed grid. <br/ > **Verbatim text (confirmed from source doc, v31):** Line 1: *"Associate Track Evaluation: The Firm pays 100% of data costs."* Line 2: *"Level 1 and 2: The Trader pays (Standard Exchange Professional Data rates apply)."* Line 3: *"Level 3: The Trader is fully reimbursed for all Base CME market data costs incurred during Levels 1 and 2."* (Note: reimbursement is scoped specifically to <br/ > **Base CME** costs, not all data costs — this is more precise than earlier drafts.) Line 4: *"Level 3 to Level 24: The Firm covers 100% of Base CME data costs."* |
 | 4 | [Back] | Button (Secondary) | N/A | **Behaviour Rules:** Navigate back to Step 3. |
 | 5 | [Next] | Button (Primary) | N/A | **Behaviour Rules:** Always enabled (CME always selected). On click → store final `addon_ids[]`, navigate to Step 5. |
 
@@ -602,16 +591,14 @@ Market Data
 | 1 | BR_5.1 | CME Locked ON | Pre-checked and locked ON by default — cannot be unchecked. |
 | 2 | BR_5.2 | Optional Feed Defaults | NYMEX, CBOT, COMEX default to OFF. |
 | 3 | BR_5.3 | Cost Display | All selected options show `"Cost: $0.00 (Covered by Stack Trading)"`. |
-| 4 | BR_5.4 | Navigation — Back from Later Steps | Ref `CR-07`. Previously selected `addon_ids[]` states preserved on return to Step 4 — not reset to default. |
+| 4 | BR_5.4 | Navigation — Back from Later Steps | Previously selected `addon_ids[]` states preserved on return to Step 4 — not reset to default. |
 | 5 | BR_5.5 | Product & Price Source — Table C (No Hardcoding) | `GET /public/market-data-products` MUST read product list + prices from Zapier Table C at request time. Backend must NOT hardcode. Applies also to the authenticated Dashboard variant (`GET /market-data-products`), which additionally filters out already-owned feeds. |
 
 #### 5. MESSAGE LIST
 
-| # | Message Code | Type | Trigger |
-| --- | --- | --- | --- |
-| 1 | MSG-09 | Error (Full-page) | `GET /public/market-data-products` returns 0 products |
-
-*Full message text: see MESSAGE CATALOG at the end of this document.*
+| # | Message Code | Type | Message (EN) | Message (VN) | Trigger |
+| --- | --- | --- | --- | --- | --- |
+| 1 | MSG-03 | Error (Full-page) | (Cần xác nhận) | (Cần xác nhận) | `GET /public/market-data-products` returns 0 products |
 
 ## STEP 5 — PII CAPTURE, COMPLIANCE & CART ABANDONMENT
 
@@ -628,21 +615,21 @@ Market Data
 | **Pre-Condition(s)** | Session state has `asset_class`, `product_id`, `platform`, `addon_ids[]` (empty array `[]` for Forex path). `required_flow` available in global state. |
 | **Trigger** | User clicks [Next] at Step 4 (Futures) or Step 3 (Forex). |
 | **Post-Condition(s)** | PII validated. `POST /calculate-cart` returned HTTP 200 (Sanctions Gate passed). All required checkboxes checked. User can proceed to Step 6. |
-| **Basic Flow** | See Detailed 10-step flow below. |
+| **Basic Flow** | See Detailed 10-step flow below . |
 | **List Screen** | Step 5 (PII Capture & Compliance) — 7 flow-specific wireframe variants |
-| **Exception Flow** | E1 — Blocked jurisdiction selected (`MSG-10`): placement varies by whether whole-country or specific-region match; Next stays disabled until valid selection made. <br/ > E2 — Address mismatch, US/CA only (`MSG-11`). <br/ > E3 — `/calculate-cart` HTTP 5xx (`MSG-12`). |
+| **Exception Flow** | E1 — Blocked jurisdiction selected: placement varies by whether whole-country or specific-region match; Next stays disabled until valid selection made. <br/ > E2 — `/calculate-cart` HTTP 5xx |
 
 #### 2. DETAILED BASIC FLOW
 
-1. Step 5 renders all PII fields. Flow-dependent compliance UI (UC_1.2) renders simultaneously.
-2. Current UTM values read per `CR-05` — not re-parsed from URL here.
+1. Step 5 renders all PII fields. Flow-dependent compliance UI renders simultaneously.
+2. Current UTM values read from `localStorage` — not re-parsed from URL here.
 3. User fills fields. Email `onBlur` → triggers UC_6.2 Phase 1 (Capture Lead), independently of this flow.
-4. Typing in Billing Address suggests a dropdown (cascading behavior: Ref `CR-08`); selecting an entry auto-populates Billing Address, ZIP, and attempts to match Country/State/City dropdowns. Overwrites any existing values in those fields. If auto-selected Country is blocked → fires immediately per step 7.
-5. User selects Country. State/Region, City, ZIP fields visible on load — City starts disabled (no Region yet). On Country selection: hide State/Region if country has none → also hide City; hide ZIP if `zip_requirements[country] = false` (Ref `CR-08`).
+4. Typing in Billing Address suggests a dropdown; selecting an entry auto-populates Billing Address, ZIP, and attempts to match Country/State/City dropdowns. Overwrites any existing values in those fields. If auto-selected Country is blocked → fires immediately per step 7.
+5. User selects Country. State/Region, City, ZIP fields visible on load — City starts disabled (no Region yet). On Country selection: hide State/Region if country has none → also hide City; hide ZIP if `zip_requirements[country] = false`.
 6. User selects State/Region. Frontend clears existing City selection, fetches City list scoped to Region. No city data → City stays hidden; otherwise enabled with fetched options.
-7. Sanctions pre-check (immediate-validation timing: Ref `CR-09`): on every Country/State selection — blocked immediately (`MSG-10`), Region/ZIP disabled per placement rule; not blocked → no warning.
-8. User checks all required compliance checkboxes + fills remaining fields, including Confirm Email (must match Email — see Screen Description row 3).
-9. User clicks [Next] → `POST /calculate-cart` fires (deferred-validation timing: Ref `CR-09`). Payload: `product_id, addon_ids, billing_country, billing_region, billing_city, user_ip, user_id, promo_code (NULL), zip_code (conditional)`. "Calculating regional taxes..." shown below State/Region dropdown; [Next] disabled during call (Ref `CR-06`). Backend processes 6 steps in order: **(1) Sanctions Gate** → 403 if matched (`MSG-10`), skips 2–6. **(2) Pricing Engine** → Table J lookup, Founder Price if cohort open, returning-user branch, market data entitlement check. **(3) Location Check** → N/A at Step 5 (billing_country always user-supplied here). **(4) Address Validation Gate** → US/CA only, rate-limited 15 req/min + 24h cache; mismatch → HTTP 400 (`MSG-11`), skips 5–6; all other countries bypass this gate entirely. **(5) Tax Engine** → Quaderno API call with running amount from step 2. **(6) Return** → `{ base_price, discount_amount, tax_amount, total_price }`, saved silently to session state — nothing rendered at Step 5.
+7. Sanctions pre-check: on every Country/State selection — blocked immediately, Region/ZIP disabled per placement rule, not blocked → no warning.
+8. User checks all required compliance checkboxes + fills remaining fields.
+9. User clicks [Next] → `POST /calculate-cart` fires. Payload: `product_id, addon_ids, billing_country, billing_region, billing_city , user_ip, user_id, promo_code (NULL), zip_code (conditional)`. "Calculating regional taxes..." shown below State/Region dropdown; [Next] disabled during call. Backend processes 6 steps in order: **(1) Sanctions Gate** → 403 if matched, skips 2–6. **(2) Pricing Engine** → Table J lookup, Founder Price if cohort open, returning-user branch, market data entitlement check. **(3) Location Check** → N/A at Step 5 (billing_country always user-supplied here). **(4) Address Validation Gate** → US/CA only, rate-limited 15 req/min + 24h cache; mismatch → HTTP 400, skips 5–6; all other countries bypass this gate entirely. **(5) Tax Engine** → Quaderno API call with running amount from step 2. **(6) Return** → `{ base_price, discount_amount, tax_amount, total_price }`, saved silently to session state — nothing rendered at Step 5
 10. On HTTP 200 → "Calculating..." text disappears, triggers UC_6.2 Phase 2 (full PII UPSERT), navigates to Step 6. No price/tax shown at Step 5.
 
 #### 3. ACTIVITY FLOW
@@ -654,23 +641,23 @@ flowchart TD
         B[Fill PII fields]
         C[Select Country]
         D[Select State/Region]
-        E[Check compliance boxes<br/>+ Confirm Email]
+        E[Check compliance boxes]
         F[Click Next]
     end
 
     subgraph System
         G{Country blocked?}
-        G1[Show MSG-10<br/>disable State + ZIP<br/>Next stays disabled]
+        G1[Show Country<br/>disable State + ZIP<br/>Next stays disabled]
         H{State/Region blocked?}
-        H1[Show MSG-10<br/>disable ZIP<br/>Next stays disabled]
+        H1[Show State<br/>disable ZIP<br/>Next stays disabled]
         I[Call POST /calculate-cart]
         J[Backend: Sanctions Gate]
         K{Sanctions match?}
-        K1[Return HTTP 403 - MSG-10<br/>skip remaining steps]
+        K1[Return HTTP 403<br/><br/>skip remaining steps]
         L[Pricing Engine]
         M[Address Validation Gate<br/>US/CA only]
         N{Address mismatch?}
-        N1[Return HTTP 400 - MSG-11]
+        N1[Return HTTP 400<br/>]
         O[Tax Engine - Quaderno]
         P[Return base/discount/tax/total<br/>saved silently, not displayed]
         Q[Trigger UC_6.2 Phase 2<br/>full PII UPSERT]
@@ -695,47 +682,46 @@ Trader Details
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
-| 1 | First Name / Last Name | Text Input | Yes | **Description:** Legal name capture. <br/ > **Validation Rules:** Ref `CR-03`. |
-| 2 | Email | Text Input | Yes | **Description:** Primary identifier and cart-abandonment trigger. <br/ > **Behaviour Rules:** `onBlur` → triggers `POST /capture-lead` (UC_6.2 Phase 1). <br/ > **Validation Rules:** Ref `CR-02`. |
-| 3 | Confirm Email | Text Input | Yes | **Description:** Prevents checkout completion on a mistyped email, since the activation link in Step 7 is the only way the user receives their account. <br/ > **Validation Rules:** Must match Email field exactly (case-insensitive). [Next] stays disabled while mismatched — see row 12. |
-| 4 | Billing Address | Text Input w/ Autocomplete | Yes | **Description:** Street address with Google Places Autocomplete. <br/ > **Behaviour Rules:** Ref `CR-08`. Selecting a suggestion auto-fills ZIP + attempts to match Country/State/City dropdowns. Manual typing without selecting a suggestion does NOT auto-fill other fields. |
-| 5 | Country | Dropdown | Yes | **Displaying/Behaviour Rules:** Ref `CR-01`, `CR-08`. Sanctions pre-check fires immediately on selection (`CR-09`). Hides State/Region if country has none; hides City consequently; hides ZIP if not required for this country. |
-| 6 | State / Province / Region | Dropdown | Conditional | **Displaying Rules:** Ref `CR-01`, `CR-08`. Hidden if selected country has no regions. <br/ > **Behaviour Rules:** Sanctions pre-check fires on selection (`CR-09`). Clears + re-fetches City options scoped to this region. |
-| 7 | City | Dropdown | Conditional | **Displaying Rules:** Ref `CR-01`, `CR-08`. Disabled until Region selected; hidden if Region has no city data. |
-| 8 | ZIP / Postal Code | Text Input | Conditional | **Displaying Rules:** Ref `CR-08`. Shown/hidden per `zip_requirements[billing_country]` map from Step 0. |
-| 9 | Shirt Size | Dropdown | Yes | **Displaying Rules:** Ref `CR-01`. Options: S, M, L, XL, XXL. |
-| 10 | Compliance Checkboxes (2 or 3, flow-dependent) | Checkbox | Yes | See UC_1.2 §3 for exact text and per-flow variants. |
-| 11 | "Calculating regional taxes..." | Static Text | N/A | **Displaying Rules:** Shown below State/Region dropdown only while `POST /calculate-cart` is in flight. |
-| 12 | [Back] | Button (Secondary) | N/A | **Behaviour Rules:** Navigate back to Step 4/Step 3. Data persistence: Ref `CR-07`. |
-| 13 | [Next] | Button (Primary) | N/A | **Validation Rules (Ref `BR_6.1.2`):** Disabled until: (1) all required fields valid, (2) no unresolved Sanctions pre-check match, (3) all required checkboxes checked, (4) Confirm Email matches Email (row 3). <br/ > **Behaviour Rules:** Ref `CR-06`. On click → fires `POST /calculate-cart`; stays disabled during call; navigates to Step 6 only on HTTP 200. |
+| 1 | First Name / Last Name | Text Input | Yes | **Description:** Legal name capture. <br/ > **Validation Rules:** Required. (Cần xác nhận: max length / special-char rules — generic text field rule.) |
+| 2 | Email | Text Input | Yes | **Description:** Primary identifier and cart-abandonment trigger. <br/ > **Behaviour Rules:** `onBlur` → triggers `POST /capture-lead` (UC_6.2 Phase 1). <br/ > **Validation Rules:** Required |
+| 3 | Billing Address | Text Input w/ Autocomplete | Yes | **Description:** Street address with Google Places Autocomplete. <br/ > **Behaviour Rules:** Selecting a suggestion auto-fills ZIP + attempts to match Country/State/City dropdowns. Manual typing without selecting a suggestion does NOT auto-fill other fields. |
+| 4 | Country | Dropdown | Yes | **Behaviour Rules:** Sanctions pre-check fires immediately on selection. Hides State/Region if country has none; hides City consequently; hides ZIP if not required for this country. |
+| 5 | State / Province / Region | Dropdown | Conditional | **Displaying Rules:** Hidden if selected country has no regions. **Behaviour Rules:** Sanctions pre-check fires on selection. Clears + re-fetches City options scoped to this region. |
+| 6 | City | Dropdown | Conditional | **Displaying Rules:** Disabled until Region selected; hidden if Region has no city data. **Behaviour Rules:** Cascades from State/Region selection. |
+| 7 | ZIP / Postal Code | Text Input | Conditional | **Displaying Rules:** Shown/hidden per `zip_requirements[billing_country]` map from Step 0. |
+| 8 | Shirt Size | Dropdown | Yes | **Displaying Rules:** Options: S, M, L, XL, XXL. |
+| 9 | Compliance Checkboxes (2 or 3, flow-dependent) | Checkbox | Yes | See UC_1.2 §3 for exact text and per-flow variants. |
+| 10 | "Calculating regional taxes..." | Static Text | N/A | **Displaying Rules:** Shown below State/Region dropdown only while `POST /calculate-cart` is in flight. |
+| 11 | [Back] | Button (Secondary) | N/A | **Behaviour Rules:** Navigate back to Step 4/Step 3. |
+| 12 | [Next] | Button (Primary) | N/A | **Validation Rules (Ref BR_6.1.2):** Disabled until: (1) all required fields valid, (2) no unresolved Sanctions pre-check match, (3) all required checkboxes checked, (4) Confirm Email matches Email. **Behaviour Rules:** On click → fires `POST /calculate-cart`; stays disabled during call; navigates to Step 6 only on HTTP 200. |
 
 #### 5. BUSINESS RULES
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
-| 1 | BR_6.1.1 | Sanctions Pre-Check & Tax Calculation Timing | Ref `CR-09`. Two independent mechanisms: (1) Immediate sanctions pre-check on every Country/State selection — no debounce; (2) Tax calculation call ONLY on [Next] click, never on field `onChange`/`onBlur` (except Email `onBlur` which triggers a separate lead-capture call, not this one). |
+| 1 | BR_6.1.1 | Sanctions Pre-Check & Tax Calculation Timing | Two independent mechanisms: (1) Immediate sanctions pre-check on every Country/State selection — no debounce; (2) Tax calculation call ONLY on [Next] click, never on field `onChange`/`onBlur` (except Email `onBlur` which triggers a separate lead-capture call, not this one). |
 | 2 | BR_6.1.2 | Next Button Gate | 4 conditions must all be true simultaneously (see Screen Description row 13). On click, if met → fires `/calculate-cart`; navigation happens only on HTTP 200. |
 | 3 | BR_6.1.3 | Everflow Cookie Capture | 2 parallel paths run on page init, always, regardless of SDK status: Path 1 = Everflow JS SDK captures affiliate params, stores `transaction_id` as first-party cookie. Path 2 = raw affiliate URL params parsed directly into `st_affiliate_data` cookie (not ad-blocker-dependent). If SDK fails to load: FE appends `everflow_sdk_blocked=true` + `st_affiliate_data` to `/execute-checkout` payload; backend generates `transaction_id` on-the-fly via Everflow S2S Click API. |
-| 4 | BR_6.1.4 | Data Persistence on Back Navigation | Ref `CR-07`. Step 5 data preserved across back nav. |
+| 4 | BR_6.1.4 | Data Persistence on Back Navigation | Step 5 data preserved across back nav. |
 | 5 | BR_6.1.5 | No Price Display at Step 5 | `base_price/discount/tax/total` from `/calculate-cart` saved silently to session state — nothing rendered on this screen. First shown at Step 6 Order Summary. |
 | 6 | BR_6.1.6 | Email/Confirm Email do not trigger tax call | Changes to these two fields never trigger `POST /calculate-cart`. |
 | 7 | BR_6.1.7 | Field Disable Placement on Sanctions Match | Whole-country match → disables State/Region + ZIP. Specific-region match → disables ZIP only. |
-| 8 | BR_6.1.8 | Google Places Autocomplete Behavior | Ref `CR-08`. See detailed flow step 4 above. |
-| 9 | BR_6.1.9 | Returning User Detection | If email matches an existing Users record with `status IN ('Failed','Terminated')`, pricing branches on `Post_Failure_Retention_Days` (Table C) × founder × professional status. **⚠️ Cần xác nhận với BAL:** exact branch matrix — chưa đủ rõ trong tài liệu hiện có để mô tả chi tiết. |
-| 10 | BR_6.1.10 | Market Data Entitlement Check (Returning Users) | For Futures/Rithmic returning users, must check already-purchased market data before allowing new feed purchase. **⚠️ Cần xác nhận với BAL:** UI treatment cụ thể tại Step 5. |
-| 11 | BR_6.1.11 | City Cascades From Region | Ref `CR-08`. City dropdown always scoped to the selected State/Region; changing Region clears City selection and re-fetches options. |
-| 12 | BR_6.1.12 | Address Validation Gate (US/CA only) | Rate-limited 15 req/min per user/session + 24h success cache per normalized State+City+ZIP. Mismatch on `administrative_area_level_1`/`locality`/`postal_code` → HTTP 400 (`MSG-11`), request dropped before Tax Engine runs. All other countries bypass this gate — proceed straight to Tax Engine. |
-| 13 | BR_6.1.13 | Address Validation API Error Cases | **⚠️ Cần xác nhận với BAL:** danh sách đầy đủ các trường hợp lỗi trả về từ Google Address Validation API mà QC cần test — chưa được liệt kê chi tiết ở tài liệu hiện có. |
+| 8 | BR_6.1.8 | Google Places Autocomplete Behavior | See detailed flow step 4 above. |
+| 9 | BR_6.1.9 | Returning User Detection | If email matches an existing Users record with `status IN ('Failed','Terminated')`, pricing branches on `Post_Failure_Retention_Days` (Table C) × founder × professional status. (Cần xác nhận: exact branch matrix — not fully detailed in source doc excerpt available.) |
+| 10 | BR_6.1.10 | Market Data Entitlement Check (Returning Users) | For Futures/Rithmic returning users, must check already-purchased market data before allowing new feed purchase. (Cần xác nhận: exact UI treatment at Step 5.) |
+| 11 | BR_6.1.11 | City Cascades From Region | City dropdown always scoped to the selected State/Region; changing Region clears City selection and re-fetches options. |
+| 12 | BR_6.1.12 | Address Validation Gate (US/CA only) | Rate-limited 15 req/min per user/session + 24h success cache per normalized State+City+ZIP. Mismatch on `administrative_area_level_1`/`locality`/`postal_code` → HTTP 400, request dropped before Tax Engine runs. All other countries bypass this gate — proceed straight to Tax Engine. |
+| 13 | BR_6.1.13 | Address Validation API Error Cases (for AQA) | Source doc references a dedicated named subsection "Errors from Calling API (for AQA team)" listing the full set of Google Address Validation API error cases QC must test. **⚠️ Cần xác nhận:** content did not load in the fetch (page truncates at this point every time it's pulled) — open the source page directly in a browser and scroll to this anchor before finalizing AQA test cases. |
+| 14 | BR_6.1.14 | Returning-User Pricing — Full Branch Matrix | Referenced by `row 9 above` as the rule containing the complete branch logic for `Post_Failure_Retention_Days` × founder × professional status, plus "the resulting post-payment flow." **⚠️ Cần xác nhận:** same fetch limitation as above — this is a materially important rule (governs pricing for anyone re-purchasing after a failed/terminated account) and should be pulled directly from the browser, not left as a placeholder, before SRS sign-off. |
+| 15 | BR_6.1.15 | Market Data Entitlement Check — UI Treatment | Referenced by `row 10 above`. **⚠️ Cần xác nhận:** same limitation — governs what a returning Futures/Rithmic user sees at Step 5 if they already own some market data feeds. |
 
 #### 6. MESSAGE LIST
 
-| # | Message Code | Type | Trigger |
-| --- | --- | --- | --- |
-| 1 | MSG-10 | Validation (Inline) | Blocked Country/Region selected (pre-check) or 403 from `/calculate-cart` |
-| 2 | MSG-11 | Validation (Inline) | Google Address Validation flags mismatch (US/CA only) |
-| 3 | MSG-12 | Error (Full-page) | `/calculate-cart` HTTP 5xx |
-
-*Full message text: see MESSAGE CATALOG at the end of this document.*
+| # | Message Code | Type | Message (EN) | Message (VN) | Trigger |
+| --- | --- | --- | --- | --- | --- |
+| 1 | MSG-01 | Validation (Inline) | (Cần xác nhận: exact wording, e.g. "Stack Trading cannot accept clients from [Country]/[Region]") | (Cần xác nhận) | Blocked Country/Region selected (pre-check) or 403 from `/calculate-cart` |
+| 2 | MSG-12 | Validation (Inline) | (Cần xác nhận: exact wording — Address Validation mismatch) | (Cần xác nhận) | Google Address Validation flags mismatch (US/CA only) |
+| 3 | MSG-03 | Error (Full-page) | (Cần xác nhận: exact wording) | (Cần xác nhận) | `/calculate-cart` HTTP 5xx |
 
 ### UC_6.2 — Lead Capture & Cart Abandonment
 
@@ -750,9 +736,9 @@ Trader Details
 | **Pre-Condition(s)** | User is on Step 5. |
 | **Trigger** | Phase 1: Email field `onBlur`. Phase 2: [Next] click succeeds at Step 5 (`/calculate-cart` HTTP 200). |
 | **Post-Condition(s)** | Phase 1: Guest record created/updated + `Cart_Abandonment` webhook fired. Phase 2: full PII UPSERTed into the same record. No Auth0 account exists at either phase. |
-| **Basic Flow** | Phase 1: Email `onBlur` → `POST /capture-lead` (email + UTM per `CR-05`) → creates/updates Guest record, fires `Cart_Abandonment` webhook. <br/ > Phase 2: [Next] click succeeds → UPSERT full PII into same Guest record → navigate to Step 6. |
+| **Basic Flow** | Phase 1: Email `onBlur` → `POST /capture-lead` (email + UTM) → creates/updates Guest record, fires `Cart_Abandonment` webhook. Phase 2: [Next] click succeeds → UPSERT full PII into same Guest record → navigate to Step 6. |
 | **List Screen** | N/A (silent background call within Step 5) |
-| **Exception Flow** | **⚠️ Cần xác nhận với BAL:** hành vi khi `POST /capture-lead` tự nó thất bại — hiện chưa có trạng thái báo lỗi nào cho người dùng ở lệnh gọi "fire-and-forget" này. |
+| **Exception Flow** | (Cần xác nhận: behavior if `/capture-lead` itself fails — source doc does not specify a user-facing error state for this fire-and-forget call.) |
 
 #### 2. ACTIVITY FLOW
 
@@ -764,7 +750,7 @@ flowchart TD
     end
 
     subgraph System
-        C[POST /capture-lead<br/>Phase 1: email + UTM - Ref CR-05]
+        C[POST /capture-lead<br/>Phase 1: email + UTM]
         D[Create/update Guest record]
         E[Fire Cart_Abandonment webhook]
         G[POST /calculate-cart succeeds]
@@ -784,8 +770,8 @@ N/A — silent background operation, no dedicated screen elements beyond the Ema
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
-| 1 | BR_6.2.1 | Two-Phase Capture | Phase 1 (onBlur) captures minimal data early to survive drop-off; Phase 2 (Next success) enriches the same record with full PII — never creates a duplicate record. |
-| 2 | BR_6.2.2 | No Auth0 Account at Either Phase | A Guest record is a DB row only — no authentication account exists until Step 7 provisioning completes. |
+| 1 | (Implicit) | Two-Phase Capture | Phase 1 (onBlur) captures minimal data early to survive drop-off; Phase 2 (Next success) enriches the same record with full PII — never creates a duplicate record. |
+| 2 | (Implicit) | No Auth0 Account at Either Phase | A Guest record is a DB row only — no authentication account exists until Step 7 provisioning completes. |
 
 #### 5. MESSAGE LIST
 
@@ -808,17 +794,18 @@ N/A — background call, no user-facing message.
 | **Post-Condition(s)** | Step 6 renders fully. First method in `methods[]` pre-selected. Matching execution environment renders. |
 | **Basic Flow** | See Detailed Flow below (§2). |
 | **List Screen** | Step 6 (Secure Checkout) |
-| **Exception Flow** | E1 — `methods[]` empty (`MSG-13`): blocking popup, user cannot proceed. |
+| **Exception Flow** | E1 — `methods[]` empty: blocking popup, user cannot proceed. |
 
 #### 2. DETAILED BASIC FLOW
 
-1. On mount, Step 6 always renders split-panel, headline *"Secure Checkout"*. If email is currently locked (`MSG-14`, Modal `MDL-04`) → renders on top, on every mount including forward nav and reload. **F5 note:** payment has no resumable mid-state — reload routes directly to correct final state.
+1. On mount, Step 6 always renders split-panel, headline *"Secure Checkout"*. If email is currently locked → renders on top, on every mount including forward nav and reload. **F5 note:** payment has no resumable mid-state — reload routes directly to correct final state, never re-rendered.
 2. System reads `methods[]` from session state (populated at Step 0). Each renders as radio + label + explanatory text + inline icons + CTA button.
 3. First method auto-selected; DOM swap executes immediately.
-4. FE applies client-side OS/browser detection for Apple Pay / Google Pay visibility.
-5. User clicks CTA → 2 possible groups covered in this document:
-   - **Group A (CC only):** fills form directly on page, no modal (UC_7.2).
-   - **Group B (Apple Pay, Google Pay):** 3rd-party modal opens. Case A = user closes before paying → no overlay. Case B = modal closed mid-payment → background listening continues per `CR-13`. Case C = payment completes in modal → confirmation (UC_7.3, UC_7.4).
+4. FE applies client-side OS/browser detection for Apple Pay / Google Pay visibility
+5. User clicks CTA → 3 possible groups:
+   - **Group A (CC only):** fills form directly on page, no modal.
+   - **Group B (Apple Pay, Google Pay, Crypto):** 3rd-party modal opens. Case A = user closes before paying → no overlay. Case B = modal closed mid-payment → WS listener maintained. Case C = payment completes in modal → confirmation.
+   - **Group C (Dusupay, T365):** full active-tab redirect to hosted page → Return URL → "Verifying Your Payment..." → WS confirmation → [Return to Payment page].
 
 #### 3. ACTIVITY FLOW
 
@@ -831,11 +818,12 @@ flowchart TD
     end
 
     subgraph System
-        C[Render MSG-13<br/>blocking popup]
+        C[Render blocking popup]
         D[Read methods from state<br/>auto-select first method<br/>apply OS/browser detection]
         H{Method group?}
-        I["Group A: CC<br/>fill form on page - UC_7.2"]
-        J["Group B: Apple Pay / Google Pay<br/>open 3rd-party modal - UC_7.3/7.4"]
+        I["Group A: CC<br/>fill form on page"]
+        J["Group B: Apple Pay / Google Pay / Crypto<br/>open 3rd-party modal"]
+        K["Group C: Dusupay / T365<br/>redirect active tab"]
         L([Proceed to UC_8.1<br/>Payment Execution])
     end
 
@@ -844,6 +832,7 @@ flowchart TD
     B -- No --> D --> F --> G --> H
     H -- A --> I --> L
     H -- B --> J --> L
+    H -- C --> K --> L
 ```
 
 #### 4. SCREEN DESCRIPTION
@@ -853,12 +842,12 @@ Checkout and Payment
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
-| 1 | Payment method radio list | Radio Group | Yes | **Displaying Rules:** Rendered dynamically from `methods[]`. Each row: radio + label + inline SVG icons + CTA. Apple Pay/Google Pay rendered only if OS/browser supports. <br/ > **Behaviour Rules:** On click → DOM swap. Default: first method pre-selected. |
+| 1 | Payment method radio list | Radio Group | Yes | **Displaying Rules:** Rendered dynamically from `methods[]`. Each row: radio + label + inline SVG icons (aggregator corporate logos excluded) + CTA. Apple Pay/Google Pay rendered only if OS/browser supports. **Behaviour Rules:** On click → DOM swap. Default: first method pre-selected. |
 | 2 | `explanatory_text` block | Static Text | N/A | **Displaying Rules:** Renders selected method's `explanatory_text`; updates on selection change. |
 | 3 | Order Summary — Selections | Static Text | N/A | **Displaying Rules:** 3 read-only lines: Asset Class / Platform / Market Data. Market Data line hidden for Forex. Truncate + tooltip on overflow. |
-| 4 | Order Summary — Financials | Static Text | N/A | **Displaying Rules:** Ref `CR-04`. `[Tier] Evaluation Price / Tax / Total / Discount` — values from `calculate-cart` response. |
+| 4 | Order Summary — Financials | Static Text | N/A | **Displaying Rules:** `[Tier] Evaluation Price / Tax / Total / Discount` — values from `calculate-cart` response, displayed exactly as returned. No hover tooltip. |
 | 5 | Value Reinforcement Block | Static Text | N/A | **Displaying Rules:** 3 green checkmark items: "Instant Platform Credentials" / "Zero Trailing Drawdowns & No Consistency Rules" / "One-Time Fee". |
-| 6 | "Have a promo code?" | Text Link / Button | N/A | **Behaviour Rules:** Expands promo section; state preserved on collapse/re-expand. See UC_7.5. |
+| 6 | "Have a promo code?" | Text Link / Button | N/A | **Behaviour Rules:** Expands promo section; state preserved on collapse/re-expand. See UC_7.8. |
 | 7 | Trust Anchors | Static Display | N/A | **Displaying Rules:** 256-bit SSL icon, PCI-DSS badge, payment logos. No interaction. |
 | 8 | [Back] | Button (Secondary) | N/A | **Behaviour Rules:** Navigate back to Step 5. |
 
@@ -867,20 +856,17 @@ Checkout and Payment
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
 | 1 | BR_7.1.1 | Data Source at Step 6 | `methods[]` read from Step 0 state — no re-query. Initial pricing read from Step 5 `/calculate-cart` state — no re-query on load. `/calculate-cart` IS re-called at Step 6 only when a promo code is applied. |
-| 2 | BR_7.1.2 | Payment Method List Is Dynamic | Never hardcoded. Built server-side at Step 0 from `Payment_Method_Config` (GLOBAL + country-specific merge, minus backend exclusion rules e.g. India strips CC/Apple Pay/Google Pay). |
-| 3 | BR_7.1.3 | Apple Pay / Google Pay — Client-Side Detection | Included in `methods[]` globally, but FE only renders them if client environment supports. |
-| 4 | BR_7.1.4 | Background Listening on Modal Close | Ref `CR-13`. |
+| 2 | BR_7.1.2 | Payment Method List Is Dynamic | Never hardcoded. Built server-side at Step 0 §3d from `Payment_Method_Config` (GLOBAL + country-specific merge, minus backend exclusion rules e.g. India strips CC/Apple Pay/Google Pay). |
+| 3 | BR_7.1.3 | Apple Pay / Google Pay — Client-Side Detection | Included in `methods[]` globally, but FE only renders them if client environment supports (Apple device/Safari for Apple Pay; Android/Chrome for Google Pay). Not rendered if unsupported, even though present in array. |
 
 #### 6. MESSAGE LIST
 
-| # | Message Code | Type | Trigger |
-| --- | --- | --- | --- |
-| 1 | MSG-13 | Alert (Popup, blocking) | `methods[]` is empty |
-| 2 | MSG-14 | Alert (Popup, blocking, countdown) | Email currently under 5-failure lock (Modal `MDL-04`) |
-| 3 | MSG-15 | Alert (Popup, processing) | Payment processing overlay (Modal `MDL-02`) |
-| 4 | MSG-16 | Alert (Popup, success) | Payment succeeds (Modal `MDL-03`) |
-
-*Full message text: see MESSAGE CATALOG at the end of this document. (MSG-14, MSG-15, MSG-16 are defined once here and in UC_8.1 §6 — same events, single definition, see MESSAGE CATALOG.)*
+| # | Message Code | Type | Message (EN) | Message (VN) | Trigger |
+| --- | --- | --- | --- | --- | --- |
+| 1 | MSG-01 | Alert (Popup, blocking) | (Cần xác nhận: exact wording) | (Cần xác nhận) | `methods[]` is empty |
+| 2 | MSG-02 | Alert (Popup) | (Cần xác nhận: exact wording — email-locked state) | (Cần xác nhận) | Email currently under 5-failure lock |
+| 3 | MSG-03 | Alert (Popup, processing) | "Please do not refresh the page or click the back button. This may take a few moments." (per RFQ source; confirm current copy) | (Cần xác nhận) | Payment processing overlay |
+| 4 | MSG-04 | Alert (Popup, success) | (Cần xác nhận: exact wording — "Payment Successful") | (Cần xác nhận) | Payment succeeds |
 
 ### UC_7.2 — Credit Card (NMI Collect.js)
 
@@ -894,10 +880,10 @@ Checkout and Payment
 | **Actor(s)** | User, NMI |
 | **Pre-Condition(s)** | `CC` method selected. NMI Collect.js hosted fields injected successfully. Name, Card Number, Expiration, CVC filled. |
 | **Trigger** | User clicks CTA button after filling CC form. |
-| **Post-Condition(s)** | HTTP 200 → auto-transitions to UC_8.1. Declined → failure banner with raw NMI decline reason (Ref `CR-11`). |
-| **Basic Flow** | 1. User clicks CTA. <br/ > 2. FE fires `POST /capture-lead` (fire-and-forget) updating `abandoned_step`. <br/ > 3. NMI Collect.js tokenizes card server-side → `payment_token`. <br/ > 4. Process transitions to UC_8.1 for payload assembly + execution. |
+| **Post-Condition(s)** | HTTP 200 → auto-transitions to UC_8.1. Declined → failure banner with raw NMI decline reason (not rewritten). |
+| **Basic Flow** | 1. User clicks CTA. <br/ > 2. FE fires `POST /capture-lead` (fire-and-forget) updating `abandoned_step`.  <br/ > 3. NMI Collect.js tokenizes card server-side → `payment_token`.  <br/ > 4. Process transitions to UC_8.1 for payload assembly + execution. |
 | **List Screen** | Step 6 — Credit Card DOM state |
-| **Exception Flow** | See UC_8.1 §5 for decline handling. |
+| **Exception Flow** | See UC_8.1 §5 step 8 for decline handling. |
 
 #### 2. ACTIVITY FLOW
 
@@ -924,21 +910,21 @@ Credit Card (NMI Collect.js)
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
-| 1 | Name on card | Text Input | Yes | **Validation Rules:** Ref `CR-03`. |
-| 2 | Card Number | NMI Collect.js iframe | Yes | **Validation Rules:** Ref `CR-10`. |
-| 3 | Expiration (MM/YY) | NMI Collect.js iframe | Yes | Ref `CR-10`. |
-| 4 | CVC | NMI Collect.js iframe | Yes | Ref `CR-10`. |
+| 1 | Name on card | Text Input | Yes | **Validation Rules:** PCI-compliant, handled by NMI. Custom HTML input forbidden for the 3 fields below (not this one specifically). |
+| 2 | Card Number | NMI Collect.js iframe | Yes | **Validation Rules:** PCI-compliant, handled entirely by NMI hosted iframe. Custom HTML input strictly forbidden. |
+| 3 | Expiration (MM/YY) | NMI Collect.js iframe | Yes | Same as above. |
+| 4 | CVC | NMI Collect.js iframe | Yes | Same as above. |
 
 #### 4. BUSINESS RULES
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
-| 1 | BR_7.2.1 | Secure Payment Field Handling | Ref `CR-10`. Card Number, Expiration, CVC MUST use NMI Collect.js hosted iframes. Custom HTML inputs strictly forbidden (PCI DSS). |
+| 1 | BR_7.2.1 | NMI Collect.js Required — Custom Inputs Forbidden | Card Number, Expiration, CVC MUST use NMI Collect.js hosted iframes. Custom HTML inputs strictly forbidden (PCI DSS). |
 | 2 | BR_7.2.2 | Lead Capture | `POST /capture-lead` fires on CTA click to update abandoned-step record. Does NOT block payment execution — `/execute-checkout` proceeds regardless of outcome. |
 
 #### 5. MESSAGE LIST
 
-N/A — decline messaging is centralized in UC_8.1 (raw gateway message, Ref `CR-11`, no dedicated code).
+N/A — decline messaging is centralized in UC_2.8.1 (raw gateway message, not rewritten here).
 
 ### UC_7.3 — Apple Pay
 
@@ -950,10 +936,10 @@ N/A — decline messaging is centralized in UC_8.1 (raw gateway message, Ref `CR
 | **Use Case Name** | Apple Pay |
 | **Use Case Description** | This use case allows the User to pay via the native Apple Pay wallet sheet (iOS Safari / macOS Safari), in order to complete purchase with biometric authentication instead of manual card entry. |
 | **Actor(s)** | User, NMI (Apple Pay integration) |
-| **Pre-Condition(s)** | Apple Pay visible (per `BR_7.1.3`). |
+| **Pre-Condition(s)** | Apple Pay visible. |
 | **Trigger** | User clicks CTA button with Apple Pay selected. |
-| **Post-Condition(s)** | Case C (success) → UC_8.1. Case A (cancel) → no overlay. Failure → UC_8.1 §5, raw error (Ref `CR-11`). |
-| **Basic Flow** | 1. User clicks CTA. <br/ > 2. FE fires `POST /capture-lead` fire-and-forget. <br/ > 3. NMI invokes native Apple Pay sheet (3rd-party modal). <br/ > 4. Outcome per case table below. |
+| **Post-Condition(s)** | Case C (success) → UC_8.1. Case A (cancel) → no overlay. Failure → UC_8.1 §5 step 8. |
+| **Basic Flow** | 1. User clicks CTA. <br/ > 2. FE fires `POST /capture-lead` fire-and-forget.  <br/ > 3. NMI invokes native Apple Pay sheet (3rd-party modal).  <br/ > 4. Outcome per case table below. |
 | **List Screen** | Step 6 — Apple Pay wallet sheet (native, not a Stack Trading screen) |
 | **Exception Flow** | See case table below. |
 
@@ -964,7 +950,7 @@ N/A — decline messaging is centralized in UC_8.1 (raw gateway message, Ref `CR
 | A | User dismisses sheet before authenticating | Sheet closes → CTA returns to normal state. No overlay. |
 | B | N/A | Apple Pay auth is atomic — no mid-authentication close state exists. |
 | C | User authenticates, payment completes | Sheet closes → `PAYMENT_RESULT=success` → UC_8.1. |
-| Failure | `PAYMENT_RESULT=failure` | Overlay removed → UC_8.1 §5. Failure banner = raw Apple Pay/NMI response (Ref `CR-11`). |
+| Failure | `PAYMENT_RESULT=failure` | Overlay removed → UC_8.1 §5 step 8. Failure banner = raw Apple Pay/NMI response, not rewritten. |
 
 #### 3. ACTIVITY FLOW
 
@@ -979,10 +965,10 @@ flowchart TD
         D[Invoke native Apple Pay sheet]
         E{User action?}
         F[Case A: Sheet closes<br/>no overlay]
-        G[Modal MDL-02 renders]
+        G[Gold spinner renders]
         H{PAYMENT_RESULT?}
         I[UC_8.1]
-        J[UC_8.1 step 8<br/>raw failure banner - CR-11]
+        J[UC_8.1 step 8<br/>raw failure banner]
     end
 
     B --> C --> D --> E
@@ -998,11 +984,11 @@ N/A — wallet sheet is native Apple UI, not a Stack Trading-designed screen. Se
 
 #### 5. BUSINESS RULES
 
-N/A feature-specific — governed by `BR_7.1.3` (visibility) and UC_8.1 (execution/failure handling).
+N/A feature-specific: UC_8.1 (execution/failure handling).
 
 #### 6. MESSAGE LIST
 
-N/A — see UC_8.1 for failure banner handling (Ref `CR-11`, raw provider message, no dedicated code).
+N/A — see UC_8.1 for failure banner handling (raw provider message, no dedicated code).
 
 ### UC_7.4 — Google Pay
 
@@ -1014,9 +1000,9 @@ N/A — see UC_8.1 for failure banner handling (Ref `CR-11`, raw provider messag
 | **Use Case Name** | Google Pay |
 | **Use Case Description** | This use case allows the User to pay via the native Google Pay wallet sheet (Android Chrome / Chrome desktop), in order to complete purchase with device authentication instead of manual card entry. |
 | **Actor(s)** | User, NMI (Google Pay integration) |
-| **Pre-Condition(s)** | Google Pay visible (per `BR_7.1.3`). |
+| **Pre-Condition(s)** | Google Pay visible. |
 | **Trigger** | User clicks CTA button with Google Pay selected. |
-| **Post-Condition(s)** | Identical pattern to UC_7.3 (Apple Pay) — Case C success → UC_8.1; Case A cancel → no overlay; failure → UC_8.1 §5. |
+| **Post-Condition(s)** | Identical pattern to UC_2.7.3 (Apple Pay) — Case C success → UC_8.1; Case A cancel → no overlay; failure → UC_8.1 §5 step 8. |
 | **Basic Flow** | Identical structure to UC_7.3, substituting Google Pay's native wallet sheet (hosted by Google) for Apple's. |
 | **List Screen** | Step 6 — Google Pay wallet sheet (native) |
 | **Exception Flow** | Same case table pattern as UC_7.3 — Case B N/A (atomic device auth: biometrics/PIN). |
@@ -1031,7 +1017,7 @@ N/A — native Google UI, not a Stack Trading-designed screen.
 
 #### 4. BUSINESS RULES
 
-N/A feature-specific — governed by `BR_7.1.3` and UC_8.1.
+N/A feature-specific — governed by UC_8.1.
 
 #### 5. MESSAGE LIST
 
@@ -1043,7 +1029,7 @@ N/A — see UC_8.1.
 
 | Field | Content |
 | --- | --- |
-| **Use Case ID** | UC_7.5 |
+| **Use Case ID** | UC_7.4 |
 | **Use Case Name** | Apply Promo Code |
 | **Use Case Description** | This use case allows the User to apply a discount code to their order, in order to reduce the total price before payment, with the reservation only finalized at the moment of successful payment. |
 | **Actor(s)** | User, System |
@@ -1052,16 +1038,16 @@ N/A — see UC_8.1.
 | **Post-Condition(s)** | Success: Order Summary shows Discount + Subtotal lines, input locked, button = [Remove]. Failure: inline error, input stays editable (or locked-with-error for re-validation failures). |
 | **Basic Flow** | See Detailed Flow below (§2). |
 | **List Screen** | Step 6 — Promo code panel (expandable) |
-| **Exception Flow** | E1 — HTTP 422 (invalid/expired/limit, `MSG-18`/`MSG-19`/`MSG-21`): inline error, [Apply] re-enables, input editable. <br/ > E2 — HTTP 5xx: no network, request timeout, or HTTP 500. |
+| **Exception Flow** | E1 — HTTP 422 (invalid/expired/limit): inline error, [Apply] re-enables, input editable. <br/ > E2 — HTTP 5xx: No network, request timeout, or HTTP 500 |
 
 #### 2. DETAILED BASIC FLOW
 
 1. User clicks "Have a promo code?" → input + [Apply] expand.
-2. [Apply] disabled until ≥1 character entered (Ref `CR-06`).
+2. [Apply] disabled until ≥1 character entered.
 3. User enters code, clicks [Apply] → spinner + disabled → `POST /calculate-cart` with `promo_code`.
-4. HTTP 200 (`discount_amount > 0`): inline success (`MSG-17`); Discount line appears (labeled `Promo code (<code>)`, code as-typed); Tax/Total update per `CR-04`; **input LOCKS**, [Apply] swaps to [Remove].
-5. HTTP 422: inline error (`MSG-18` invalid/expired/limit, or `MSG-19` per-user limit, or `MSG-21` product mismatch); [Apply] re-enables, input editable.
-6. HTTP 5xx: no network, request timeout, or HTTP 500.
+4. HTTP 200 (`discount_amount > 0`): inline success (IN-PROMO-01); Discount line appears (labeled `Promo code (<code>)`, code as-typed); Tax/Total update; **input LOCKS**, [Apply] swaps to [Remove].
+5. HTTP 422: inline error; [Apply] re-enables, input editable.
+6. HTTP 5xx: No network, request timeout, or HTTP 500
 7. [Remove] click → spinner + disabled → `/calculate-cart` without `promo_code` → recalculates Tax/Total → removes Discount line → unlocks + clears input → button reverts to [Apply] → clears success text.
 8. User may enter a new code and repeat from step 3.
 
@@ -1076,11 +1062,11 @@ flowchart TD
     end
 
     subgraph System
-        D[Spinner + disabled - CR-06<br/>Call POST /calculate-cart with promo_code]
+        D[Spinner + disabled<br/>Call POST /calculate-cart with promo_code]
         E{Response?}
-        F1[HTTP 200: discount_amount > 0<br/>MSG-17 success<br/>Add Discount + Subtotal rows - CR-04<br/>LOCK input, swap to Remove]
-        F2[HTTP 422: MSG-18/19/21<br/>Apply re-enables, input editable]
-        F3[HTTP 5xx: No network, timeout, or HTTP 500]
+        F1[HTTP 200: discount_amount > 0<br/>Add Discount + Subtotal rows<br/>LOCK input, swap to Remove]
+        F2[HTTP 422: invalid/expired/limit<br/>Apply re-enables, input editable]
+        F3[HTTP 5xx: No network, request timeout, or HTTP 500]
         I[Spinner + disabled<br/>Call /calculate-cart without promo_code]
         J[Recalculate Tax/Total<br/>Remove Discount+Subtotal rows<br/>Unlock + clear input<br/>Revert to Apply]
     end
@@ -1100,35 +1086,33 @@ Apply Promo Code
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
 | 1 | Promo code input | Search Field | No | **Validation Rules:** Max 100 chars (block input at limit). <br/ > **Behaviour Rules:** Expands on "Have a promo code?" click. Locks (read-only) after successful apply. Stays locked with the now-invalid code on re-validation failure at Pay time — not auto-cleared. |
-| 2 | [Apply] / [Remove] | Button (Secondary) | N/A | **Behaviour Rules:** Ref `CR-06`. See Detailed Basic Flow steps 3–7. |
-| 3 | Inline success text (`MSG-17`) | Static Text | N/A | **Displaying Rules:** Visible below input on HTTP 200 success. Persists while applied; cleared only on [Remove]. |
-| 4 | Inline error text (`MSG-18`/`MSG-19`/`MSG-20`/`MSG-21`) | Static Text | N/A | **Displaying Rules:** `MSG-20` (re-validation failure at Pay time) requires manual [Remove], not auto-cleared. |
-| 5 | Discount (Order Summary row) | Static Text | N/A | **Displaying Rules:** Ref `CR-04`. Visible when `discount_amount > 0`. Position: between base price row and Tax row. Label: `Promo code (<code>)`. Amount: `−$XX.XX`. Removed only via [Remove]. |
-| 6 | Subtotal (Order Summary row) | Static Text | N/A | **Displaying Rules:** Ref `CR-04`. Same show/hide rule as Discount row — directly below it. Label: `Subtotal`. Value: `(Base_Price + Addon_Prices) − discount_amount`. |
+| 2 | [Apply] / [Remove] | Button (Secondary) | N/A | **Validation Rules:** [Apply] disabled when input empty. [Remove] always enabled once applied. <br/ > **Behaviour Rules:** See Detailed Basic Flow steps 3–7. |
+| 3 | Inline success text | Static Text | N/A | **Displaying Rules:** Visible below input on HTTP 200 success. Persists while applied; cleared only on [Remove]. |
+| 4 | Inline error text | Static Text | N/A | **Displaying Rules:** requires manual [Remove], not auto-cleared. |
+| 5 | Discount (Order Summary row) | Static Text | N/A | **Displaying Rules:** Visible when `discount_amount > 0`. Position: between base price row and Tax row. Label: `Promo code (<code>)`. Amount: `−$XX.XX`. Removed only via [Remove]. |
+| 6 | Subtotal (Order Summary row) | Static Text | N/A | **Displaying Rules:** Same show/hide rule as Discount row — directly below it. Label: `Subtotal`. Value: `(Base_Price + Addon_Prices) − discount_amount` (positive format). Appears/disappears together with Discount row. |
 
 #### 5. BUSINESS RULES
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
-| 1 | BR_7.5.1 | Apply Trigger — Click Only | `/calculate-cart` w/ promo code fires only on explicit [Apply] click, never `onBlur`. User may apply/re-apply different codes multiple times before payment — replaces the prior discount each time. `current_usage_count` incremented AFTER server-side price/tax check passes at `/execute-checkout` time (step 6.1.b) — NOT at [Apply] click. Genuine decline → restored immediately (+1). 10-min timeout → NOT restored immediately — stays reserved until backend webhook confirms explicit failure. Success → deduction kept permanently + `promo_code_usage_log` record inserted. |
-| 2 | BR_7.5.2 | One Promo Code Per Transaction | Only one code may be applied per checkout. |
-| 3 | BR_7.5.3 | Subtotal Field | See Screen Description row 6. Ref `CR-04`. |
-| 4 | BR_7.5.4 | Promo Code Types & DB Schema | Percentage discount: `discount_amount = Base_Price × rate`. Flat-rate: `discount_amount = promo_code_value`. FE only reads `discount_amount` — never the type. Input case-insensitive. **`promo_codes` table:** `code, discount_amount, discount_percentage (nullable), expiration_date, usage_limit, current_usage_count, max_uses_per_user (nullable, default 1), product_id (enum, NOT NULL)`. Invalid if: expired OR `current_usage_count >= usage_limit` OR personal count `>= max_uses_per_user`. |
-| 5 | BR_7.5.5 | Tax Calculated on Post-Discount Amount | Quaderno receives `Final_Amount = (Base_Price + Addon_Prices) − discount_amount`, NOT the base price. `Total = Final_Amount + tax_amount`. Percentage discount applies to `Base_Price` only, not add-ons. |
-| 6 | BR_7.5.6 | Promo Code Re-Validation at Execute-Checkout | Re-validated AND reserved atomically at step 6.1.b of `/execute-checkout` — only after price/tax check (6.1.a) passes. If 6.1.a fails (`PRICE_CHANGED`, `MSG-06`), promo re-validation is entirely skipped for that attempt. If code invalid/limit-reached at this point → HTTP 422, `MSG-20`, Discount+Subtotal rows removed, Tax/Total revert, input stays locked with now-invalid code (manual [Remove] required). |
-| 7 | BR_7.5.7 | Promo Code Mapped 1-to-1 to Product ID | Recognized `product_id` values: `EVAL_L1, EVAL_L2, EVAL_L5, RESET, REBUY, EXTENSION, MARKET_DATA`. Mismatch check runs at [Apply] click only (`MSG-21`). |
+| 1 | BR_7.8.1 | Apply Trigger — Click Only | `/calculate-cart` w/ promo code fires only on explicit [Apply] click, never `onBlur`. User may apply/re-apply different codes multiple times before payment — replaces the prior discount each time. `current_usage_count` incremented AFTER server-side price/tax check passes at `/execute-checkout` time (step 6.1.b) — NOT at [Apply] click. Genuine decline → restored immediately (+1). 10-min timeout → NOT restored immediately — stays reserved until backend webhook confirms explicit failure. Success → deduction kept permanently + `promo_code_usage_log` record inserted. |
+| 2 | BR_7.8.2 | One Promo Code Per Transaction | Only one code may be applied per checkout. |
+| 3 | BR_7.8.3 | Subtotal Field | See Screen Description row 6. |
+| 4 | BR_7.8.4 | Promo Code Types & DB Schema | Percentage discount: `discount_amount = Base_Price × rate`. Flat-rate: `discount_amount = promo_code_value`. FE only reads `discount_amount` — never the type. Input case-insensitive. **`promo_codes` table:** `code, discount_amount, discount_percentage (nullable), expiration_date, usage_limit, current_usage_count, max_uses_per_user (nullable, default 1), product_id (enum, NOT NULL)`. Invalid if: expired OR `current_usage_count >= usage_limit` OR personal count `>= max_uses_per_user`. |
+| 5 | BR_7.8.5 | Tax Calculated on Post-Discount Amount | Quaderno receives `Final_Amount = (Base_Price + Addon_Prices) − discount_amount`, NOT the base price. `Total = Final_Amount + tax_amount`. Percentage discount applies to `Base_Price` only, not add-ons. |
+| 6 | BR_7.8.6 | Promo Code Re-Validation at Execute-Checkout | Re-validated AND reserved atomically at step 6.1.b of `/execute-checkout` — only after price/tax check (6.1.a) passes. Priority: if 6.1.a fails (`PRICE_CHANGED`), promo re-validation is entirely skipped for that attempt (no promo error shown). If code invalid/limit-reached at this point → HTTP 422, Discount+Subtotal rows removed, Tax/Total revert, input stays locked with now-invalid code (manual [Remove] required). |
+| 7 | BR_7.8.7 | Promo Code Mapped 1-to-1 to Product ID | Recognized `product_id` values: `EVAL_L1, EVAL_L2, EVAL_L5, RESET, REBUY, EXTENSION, MARKET_DATA`. Mismatch check runs at [Apply] click only. |
 
 #### 6. MESSAGE LIST
 
-| # | Message Code | Type | Trigger |
-| --- | --- | --- | --- |
-| 1 | MSG-17 | Validation (Inline, success) | Promo applied successfully |
-| 2 | MSG-18 | Validation (Inline, error) | HTTP 422 at [Apply] click — invalid/expired/limit-reached |
-| 3 | MSG-19 | Validation (Inline, error) | `max_uses_per_user` exceeded |
-| 4 | MSG-20 | Error (Banner, not overlay) | Promo invalid/limit reached at `/execute-checkout` time |
-| 5 | MSG-21 | Validation (Inline, error) | Promo `product_id` mismatch at [Apply] click |
-
-*Full message text: see MESSAGE CATALOG at the end of this document.*
+| # | Message Code | Type | Message (EN) | Message (VN) | Trigger |
+| --- | --- | --- | --- | --- | --- |
+| 1 | MSG_01 | Validation (Inline, success) | (Cần xác nhận: exact wording) | (Cần xác nhận) | Promo applied successfully |
+| 2 | MSG_02 | Validation (Inline, error) | (Cần xác nhận: invalid/expired/limit-reached wording) | (Cần xác nhận) | HTTP 422 at [Apply] click |
+| 3 | MSG_03 | Validation (Inline, error) | (Cần xác nhận: per-user limit wording) | (Cần xác nhận) | `max_uses_per_user` exceeded |
+| 4 | MSG_04 | Error (Banner, not overlay) | (Cần xác nhận: re-validation failure wording) | (Cần xác nhận) | Promo invalid/limit reached at `/execute-checkout` time |
+| 5 | MSG_05 | Validation (Inline, error) | (Cần xác nhận: product mismatch wording) | (Cần xác nhận) | Promo `product_id` mismatch at [Apply] click |
 
 ## STEP 7 — ORDER PROCESSING & PROVISIONING
 
@@ -1141,23 +1125,22 @@ Apply Promo Code
 | **Use Case ID** | UC_8.1 |
 | **Use Case Name** | Phase 1 — Payment Execution |
 | **Use Case Description** | This use case allows the System to execute the actual charge against the selected gateway with full server-side integrity checks, in order to guarantee no duplicate charges, correct pricing, and correct promo-code accounting regardless of payment method or network reliability. |
-| **Actor(s)** | User, System, NMI, Quaderno |
+| **Actor(s)** | User, System, NMI, Triple-A, Dusupay, T365, Quaderno |
 | **Pre-Condition(s)** | Payment method selected, all required fields completed. `/calculate-cart` already succeeded (pricing/tax/totals up to date). No active email lock. |
 | **Trigger** | User clicks the CTA button on Step 6. |
-| **Post-Condition(s)** | Success: payment executed → confirmation state, Flow 1 triggered via webhook. Failure: failure banner (Ref `CR-11`), retry allowed. Email Lock: 5+ failures (`MSG-14`) → all inputs locked 15 min. |
+| **Post-Condition(s)** | Success: payment executed → confirmation state, Flow 1 triggered via webhook. Failure: failure banner, retry allowed. Email Lock: 5+ failures →  all inputs locked 15 min. Post-Payment 403: full-page Service Unavailable, automated refund initiated where possible. |
 | **Basic Flow** | See Detailed Flow below (§2) — steps run in strict sequence; steps 6–7 are server-side within the single `/execute-checkout` call. |
-| **List Screen** | Step 7 Phase 1 — Processing overlay (`MDL-02`), Payment Successful overlay (`MDL-03`), Failure banner state, Email lock overlay (`MDL-04`), Post-payment restricted-region refund states (`FPS-03`/`FPS-04`) |
+| **List Screen** | Step 7 Phase 1 — Processing overlay, Payment Successful overlay, Failure banner state, Email lock overlay, Post-payment restricted-region refund states |
 | **Exception Flow** | See §3 below (10-min timeout, HTTP 409 duplicate, post-success double-payment race, 5-Failure Email Lock). |
 
 #### 2. DETAILED BASIC FLOW
 
 **Payment Submission (client-side):**
-
-1. User clicks CTA.
-2. CTA disabled immediately (Ref `CR-06`).
-3. Modal `MDL-02` renders (`MSG-15`).
-4. Promo reservation happens server-side later (step 6.1.b).
-5. FE calls `POST /execute-checkout` with the following payload:
+    1. User clicks CTA.
+    2. CTA disabled immediately .
+    3. Gold spinner renders.
+    4. Promo reservation happens server-side later.
+    5. FE calls `POST /execute-checkout` with the following payload — supersedes the summarized version in the prior draft
 
 | Parameter | Source |
 | --- | --- |
@@ -1166,12 +1149,12 @@ Apply Promo Code
 | `promo_code` | Session state (if applied) |
 | `billing_country` | Session state (Step 5) — forwarded to gateway for AVS check |
 | `billing_region` | Session state (Step 5) — forwarded to gateway for AVS check |
-| `billing_city` | Session state (Step 5) — forwarded to gateway for AVS check (Ref `CR-08`) |
+| `billing_city` | Session state (Step 5) — forwarded to gateway for AVS check `[CHR-90]` |
 | `billing_address` | Session state (Step 5) — forwarded to gateway for AVS check |
 | `zip_code` | Session state (Step 5), conditional per `country_zip_requirements` — forwarded to gateway for AVS check |
-| `payment_method` | e.g. `"CC"`, `"GOOGLE_PAY"`, `"APPLE_PAY"` |
+| `payment_method` | e.g. `"CC"`, `"CRYPTO"`, `"GOOGLE_PAY"` |
 | `payment_token` | Gateway-specific token (e.g. NMI Collect.js response) (Optional) |
-| `utm_source/medium/campaign/term/content` | Read at submit time per `CR-05` (Optional) |
+| `utm_source/medium/campaign/term/content` | Read from `localStorage` at submit time, per CR-12 (Optional) |
 | `user_ip` | Backend-detected (silent) |
 | `timestamp_utc` | FE-generated at submit (silent, Optional) |
 | `everflow_transaction_id` | Everflow SDK cookie via `getTransactionId()` (silent, Optional) — `NULL` if SDK failed to load |
@@ -1179,16 +1162,12 @@ Apply Promo Code
 | `st_affiliate_data` | First-party cookie parsed from raw URL affiliate params (silent, Optional) — forwarded only when `getTransactionId()` returns `null` |
 | `user_id` | Current logged-in user (Optional) |
 
-*Note: only `CC`, `APPLE_PAY`, and `GOOGLE_PAY` are in scope for this document — see UC_7.2/7.3/7.4. Other payment method values are out of scope here and not documented in this SRS.*
-
 #### 3. EXCEPTIONAL FLOW
 
 | Scenario | Handling |
 | --- | --- |
-| **10-min frontend session timeout** | Modal `MDL-02` dissolves. Banner `MSG-22` shown. CTA re-enables. Server-side webhooks keep listening independently of what FE now shows. |
-| **HTTP 409 — Duplicate Payment** | `provider_event_id` already exists (prior payment succeeded). Modal `MDL-02` dismissed. Banner `MSG-23` shown. No new charge. CTA re-enables. |
-| **Double-Payment Detected Post-Success** | Banner `MSG-24` shown. CTA stays disabled. Logged for manual reconciliation. |
-| **5-Failure Email Lock** | 5+ consecutive declines within a rolling 10-min window, keyed by email (not device/IP). Modal `MDL-04` renders (`MSG-14`). 15-min countdown. Resets after countdown ends. |
+| **10-min frontend session timeout** | Gold spinner widget dissolves: *"Payment session expired. If you already submitted your payment, please check your email for confirmation. If you have not paid yet, please try again."* CTA re-enables. Server-side webhooks keep listening independently of what FE now shows. |
+| **HTTP 409 — Duplicate Payment** | `provider_event_id` already exists (prior payment succeeded). Gold spinner dismissed. No new charge. CTA re-enables. User advised to check email/spam for Claim Account link. |
 
 #### 4. SCREEN DESCRIPTION
 
@@ -1197,44 +1176,45 @@ Payment Execution
 
 | # | Component | Type | Required? | Description |
 | --- | --- | --- | --- | --- |
-| 1 | Processing Overlay (`MDL-02`) | Modal (blocking) | N/A | **Displaying Rules:** Orizon dark overlay + gold spinner. Text: `MSG-15`. |
-| 2 | Success Overlay (`MDL-03`) | Modal (auto-dismiss) | N/A | **Displaying Rules:** "Payment Successful" state (`MSG-16`), auto-dismisses after ~2s. |
-| 3 | Failure Banner | Banner (inline, top of screen) | N/A | **Displaying Rules:** Red banner, raw gateway decline text (Ref `CR-11`, not generalized). CTA re-enables alongside it. |
-| 4 | Email Lock Overlay (`MDL-04`) | Modal (blocking, 15-min countdown) | N/A | **Displaying Rules:** `MSG-14`. All inputs disabled underneath. |
-| 5 | Post-Payment Restricted-Region — Refunding (`FPS-03`) | Full-page state | N/A | `MSG-25`. **⚠️ Cần xác nhận với BAL:** tại sao có kiểm tra khu vực hạn chế lần thứ 3 ở đây (đã kiểm tra ở Step 0 và Step 5). |
-| 6 | Post-Payment Restricted-Region — Refunded (`FPS-04`) | Full-page state | N/A | `MSG-26`. |
+| 1 | Processing Overlay | Modal (blocking) | N/A | **Displaying Rules:** Orizon dark overlay + gold spinner. Text (per RFQ baseline, confirm current copy): *"Please do not refresh the page or click the back button. This may take a few moments."* |
+| 2 | Success Overlay | Modal (auto-dismiss) | N/A | **Displaying Rules:** "Payment Successful" state, auto-dismisses after ~2s. |
+| 3 | Failure Banner | Banner (inline, top of screen) | N/A | **Displaying Rules:** Red banner, RAW gateway decline text (not generalized). CTA re-enables alongside it. |
+| 4 | Email Lock Overlay | Modal (blocking, 15-min countdown) | N/A | **Displaying Rules:** All inputs disabled underneath. |
+| 5 | Post-Payment Restricted-Region — Refunding | Full-page state | N/A | --- |
+| 6 | Post-Payment Restricted-Region — Refunded | Full-page state | N/A | --- |
+| 7 | "Verifying Your Payment..." | Full-page (Dusupay/T365 only) | N/A | Spinner + text, holds until WS confirms; on failure shows [Return to Payment page]. |
 
 #### 5. BUSINESS RULES
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
-| 1 | BR_8.1.1 | CTA Disabled During Processing | Ref `CR-06`. Disabled from click until API resolves or 10-min timer expires. |
-| 2 | BR_8.1.2 | 5-Failure Lock Is Cross-Method | See §3 Exceptional Flow table above — email-keyed, response-order counted, counts failures across all payment methods together. |
+| 1 | BR_8.1.1 | CTA Disabled During Processing | Disabled from click until API resolves or 10-min timer expires. Prevents duplicate charges. OV-05 must cover UI during this window. |
+| 2 | BR_8.1.2 | 5-Failure Lock Is Cross-Method | See §3 Exceptional Flow table above — email-keyed, response-order counted. |
 | 3 | BR_8.1.3 | CTA Re-enable on Failure Only | Not re-enabled on overlay dismissal or back-nav while payment in progress — only on an actual failure response (incl. 10-min timeout). |
-| 4 | BR_8.1.4 | Retry Allowed When Prior Payment Failed or In-Progress | Dedup Check does not block retries for failed or still-in-progress prior attempts — only blocks when a prior attempt for this `user_id` already succeeded (`MSG-23`). |
+| 4 | BR_8.1.4 | Accidental Double-Payment After Timeout Retry | See §3 Exceptional Flow table — always routes through irreversible-refund/Freshdesk path, Retry Allowed When Prior Payment Failed or In-Progress. Dedup Check (6.0) does not block retries for failed or still-in-progress prior attempts — only blocks when a prior attempt for this `user_id` already succeeded. |
+| 5 | BR_8.1.5 | Late In-Flight Resolution Under Lock | See §3 Exceptional Flow table, "5-Failure Email Lock" row "Late in-flight resolution". |
 
 #### 6. MESSAGE LIST
 
-| # | Message Code | Type | Trigger |
-| --- | --- | --- | --- |
-| 1 | MSG-06 | Alert (Popup) | `PRICE_CHANGED` at `/execute-checkout` (defined once at UC_1.5 §5) |
-| 2 | MSG-14 | Alert (Popup, blocking, countdown) | 5th consecutive failure within 10 min |
-| 3 | MSG-15 | Alert (Popup, processing) | Payment submitted, awaiting result |
-| 4 | MSG-16 | Alert (Popup, success) | Payment succeeds |
-| 5 | MSG-22 | Error (Banner) | 10-min frontend timeout |
-| 6 | MSG-23 | Error (Banner) | HTTP 409 duplicate payment |
-| 7 | MSG-24 | Error (Banner) | Double-payment detected post-success |
-| 8 | MSG-25 | Error/Info (Full-page) | Post-payment restricted-region match, refund initiated |
-| 9 | MSG-26 | Error/Info (Full-page) | Refund completes |
-
-*Full message text: see MESSAGE CATALOG at the end of this document.*
+| # | Message Code | Type | Message (EN) | Message (VN) | Trigger |
+| --- | --- | --- | --- | --- | --- |
+| 1 | MSG_01 | Alert (Popup, processing) | "Please do not refresh the page or click the back button. This may take a few moments." (confirm current copy) | (Cần xác nhận) | Payment submitted, awaiting result |
+| 2 | MSG_02 | Alert (Popup, success) | (Cần xác nhận) | (Cần xác nhận) | Payment succeeds |
+| 3 | MSG_03 | Alert (Popup, blocking) | (Cần xác nhận — email-lock state, 15-min countdown) | (Cần xác nhận) | 5th consecutive failure within 10 min |
+| 4 | MSG_04 | Alert (Popup) | (Cần xác nhận — price/tax changed, prompts [Refresh now]) | (Cần xác nhận) | `PRICE_CHANGED` at `/execute-checkout` |
+| 5 | MSG_05 | Error (Banner) | "Payment session expired. If you already submitted your payment, please check your email for confirmation. If you have not paid yet, please try again." | (Cần xác nhận) | 10-min frontend timeout |
+| 6 | MSG_06 | Error (Banner) | (Cần xác nhận — duplicate payment, check email for Claim Account link) | (Cần xác nhận) | HTTP 409 duplicate payment |
+| 7 | MSG_07 | Error (Banner) | (Cần xác nhận — informs user of double-charge, refund pending) | (Cần xác nhận) | Double-payment detected post-success |
+| 8 | MSG_08 | Error/Info (Full-page) | (Cần xác nhận — refund in progress) | (Cần xác nhận) | Post-payment restricted-region match, refund initiated |
+| 9 | MSG_09 | Error/Info (Full-page) | (Cần xác nhận — refund completed) | (Cần xác nhận) | Refund completes |
+| 10 | FFE Code Error (backend) | FFE Code Error | (Cần xác nhận — any internal error codes returned by `/execute-checkout` not yet cataloged in this excerpt) | (Cần xác nhận) | Various backend validation failures |
 
 ### UC_8.2 — Phase 2: Account Claim
 
 #### 1. USE CASE SPECIFICATION TABLE
 
 | Field | Content |
-| --- | --- |
+|---|---|
 | **Use Case ID** | UC_8.2 |
 | **Use Case Name** | Phase 2 — Account Claim |
 | **Use Case Description** | This use case allows the User to activate their newly provisioned account by clicking the emailed link and providing a phone number, in order to proceed to Phase 3 (Provisioning & Redirect to Login) — notably WITHOUT setting a password at this step. |
@@ -1242,9 +1222,9 @@ Payment Execution
 | **Pre-Condition(s)** | Email 2 (Claim Account) received, containing a valid JWT link. |
 | **Trigger** | User clicks "Claim Your Account" link in Email 2. |
 | **Post-Condition(s)** | `POST /claim-account` HTTP 200 → transitions to UC_8.3 (Phase 3). |
-| **Basic Flow** | 1. User clicks emailed link. <br/ > 2. If JWT valid (within 48h) → "Create an Account" screen renders: Phone Number field only. <br/ > 3. User enters phone, submits → `POST /claim-account` (email + transaction_id + phone_number). <br/ > 4. HTTP 200 (fresh claim or resumed already-claimed link) → UC_8.3. |
+| **Basic Flow** | 1. User clicks emailed link. <br/ > 2. If JWT valid (within 48h) → "Create an Account" screen renders: Phone Number field only.<br/ > 3. User enters phone, submits → `POST /claim-account` (email + transaction_id + phone_number). <br/ > 4. HTTP 200 (fresh claim or resumed already-claimed link) → UC_8.4. |
 | **List Screen** | Step 7 Phase 2 — "Create an Account" (Phone Number only) |
-| **Exception Flow** | E1 — JWT expired: "Link Expired" state (`MDL-07`) + [Resend link] → `POST /public/resend-activation-link` (no auth, always HTTP 200, Ref `CR-12`) → fires `MSG-27`. <br/ > E2 — Admin-side resend: separate Admin-only `POST /resend-welcome` (Admin JWT required) — out of user-facing scope. |
+| **Exception Flow** | E1 — JWT expired: "Link Expired" screen + [Resend link] → `POST /public/resend-activation-link` (no auth, always HTTP 200 for anti-enumeration) → fires a 3rd email. <br/ > E2 — Admin-side resend: separate Admin-only `POST /resend-welcome` (Admin JWT required) — BPS-only, out of user-facing scope. |
 
 #### 2. ACTIVITY FLOW
 
@@ -1258,12 +1238,12 @@ flowchart TD
     end
 
     subgraph System
-        C[Render Create an Account screen<br/>Phone Number field only]
-        C1[Render MDL-07<br/>Link Expired screen]
+        C[Render Create an Account screen<br/>Phone Number field only - CHR-11]
+        C1[Render Link Expired screen]
         G[Call POST /claim-account<br/>email + transaction_id + phone_number]
         H{Response?}
-        I([Proceed to UC_8.3<br/>Phase 3 Provisioning])
-        J[Call POST /public/resend-activation-link<br/>no auth, always HTTP 200 - Ref CR-12<br/>fires MSG-27]
+        I([Proceed to UC_8.4<br/>Phase 3 Provisioning])
+        J[Call POST /public/resend-activation-link<br/>no auth, always HTTP 200<br/>fires 3rd email]
     end
 
     A --> B
@@ -1278,42 +1258,40 @@ Create an Account
 ![createacc](/assets/screenlist/Create_an_Account.png){center}
 
 | # | Component | Type | Required? | Description |
-| --- | --- | --- | --- | --- |
-| 1 | Phone Number | Text Input w/ country code dropdown | Yes | **Description:** Sole PII field required at this phase. <br/ > **Validation Rules:** Ref `CR-03`. |
-| 2 | [Activate Account] / [Submit] | Button (Primary) | N/A | **Behaviour Rules:** Ref `CR-06`. On click → `POST /claim-account`. On success → transitions to UC_8.3. |
-| 3 | "Link Expired" state (`MDL-07`) | Static Text + Button | N/A | **Behaviour Rules:** [Resend link] → `POST /public/resend-activation-link` → always HTTP 200 (Ref `CR-12`) → fires `MSG-27` if the address exists. |
+|---|---|---|---|---|
+| 1 | Phone Number | Text Input w/ country code dropdown | Yes | **Description:** Sole PII field required at this phase. <br/ > **Displaying Rules:** (Cần xác nhận: exact format/placeholder — likely follows phone validation pattern.) <br/ > **Behaviour Rules:** N/A. <br/ > **Validation Rules:** Required. |
+| 2 | [Activate Account] / [Submit] | Button (Primary) | N/A | **Behaviour Rules:** On click → `POST /claim-account`. On success → transitions to UC_8.3. |
+| 3 | "Link Expired" state | Static Text + Button | N/A | **Displaying Rules:** Shown when JWT expired. <br/ > **Behaviour Rules:** [Resend link] → `POST /public/resend-activation-link` → always HTTP 200 (anti-enumeration) → fires 3rd email if the address exists. |
 
 #### 4. BUSINESS RULES
 
 | # | BR Code | Function | Description |
-| --- | --- | --- | --- |
-| 1 | BR_8.2.1 | Password Field Removed | Phase 2 no longer collects a password from the user — only phone number. **⚠️ Cần xác nhận với BAL:** login credential của tài khoản được thiết lập ở đâu/thời điểm nào nếu không phải ở bước này. |
-| 2 | BR_8.2.2 | Anti-Enumeration on Resend | Ref `CR-12`. `POST /resend-welcome` (Admin JWT, unchanged, admin-only) vs. `POST /public/resend-activation-link` (no auth, always returns HTTP 200 regardless of whether the email exists). |
+|---|---|---|---|
+| 1 | BR_01 | Password Field Removed | Phase 2 no longer collects a password from the user — only phone number. (Cần xác nhận: where/how the account's login credential is now established)s |
+| 2 | BR_02 | Split Resend Endpoints | `POST /resend-welcome` (Admin JWT, unchanged, BPS-only) vs. new `POST /public/resend-activation-link` (no auth, always returns HTTP 200 regardless of whether the email exists — anti-enumeration). |
 
 #### 5. MESSAGE LIST
 
-| # | Message Code | Type | Trigger |
-| --- | --- | --- | --- |
-| 1 | MSG-27 | Email | `POST /public/resend-activation-link` called |
-
-*Full message text: see MESSAGE CATALOG at the end of this document.*
+| # | Message Code | Type | Message (EN) | Message (VN) | Trigger |
+|---|---|---|---|---|---|
+| 1 | (3rd resend email, code TBD) | Email | (Cần xác nhận — likely same content as original Claim Account email, re-sent) | (Cần xác nhận) | `POST /public/resend-activation-link` called |
 
 ### UC_8.3 — Phase 3: Provisioning & Redirect to Login
 
 #### 1. USE CASE SPECIFICATION TABLE
 
 | Field | Content |
-| --- | --- |
+|---|---|
 | **Use Case ID** | UC_8.3 |
 | **Use Case Name** | Phase 3 — Provisioning & Redirect to Login |
 | **Use Case Description** | This use case allows the System to finalize account provisioning (Auth0 + SIM) and hand the user off to the login screen, in order to complete the checkout-to-active-account journey. |
 | **Actor(s)** | User, System, Auth0 |
 | **Pre-Condition(s)** | Entered via `POST /claim-account` HTTP 200 (fresh) OR reopening an already-claimed link (resumed). |
 | **Trigger** | Successful transition from UC_8.2. |
-| **Post-Condition(s)** | Success: redirected to Auth0 login. Failure: `MDL-05` renders instead. |
-| **Basic Flow** | 1. "Setting up your trading floor" interstitial (`MDL-06`) renders (4-step sequence) — masks provisioning latency. <br/ > 2. Backend completes Auth0 account creation + SIM account provisioning in parallel/sequence. <br/ > 3. On success → redirect to Auth0 login screen. <br/ > 4. On failure (after backend auto-retry exhausts) → `MDL-05` renders instead. |
+| **Post-Condition(s)** | Success: redirected to Auth0 login. Failure: "Account Creation Failure" popup renders instead. |
+| **Basic Flow** | 1. "Setting up your trading floor" animated interstitial renders (4-step sequence) — masks provisioning latency. <br/ > 2. Backend completes Auth0 account creation + SIM account provisioning in parallel/sequence. <br/ > 3. On success → redirect to Auth0 login screen. <br/ >  4. On failure (after backend auto-retry exhausts) → "Account Creation Failure" renders instead. |
 | **List Screen** | Step 7 Phase 3 — "Setting up your trading floor" interstitial |
-| **Exception Flow** | E1 — Reload checks `account_status`: `Active_SIM` → redirect to login; `Guest` → keep showing provisioning/waiting state **indefinitely** (no frontend timeout) — failure handling fully delegated to backend auto-retry. |
+| **Exception Flow** | E1: reload checks `account_status` — `Active_SIM` → redirect to login; `Guest` → keep showing provisioning/waiting state **indefinitely** (no frontend timeout) — failure handling fully delegated to backend auto-retry |
 
 #### 2. ACTIVITY FLOW
 
@@ -1324,13 +1302,13 @@ flowchart TD
     end
 
     subgraph System
-        B[Render MDL-06<br/>Setting up your trading floor]
+        B[Render Setting up your trading floor<br/>4-step animated interstitial]
         C[Backend: Auth0 account creation<br/>+ SIM provisioning]
         D{Result?}
         E[Redirect to Auth0 login screen]
-        F[Backend auto-retry]
+        F[Backend auto-retry<br/>Cần xác nhận: retry policy]
         G{Retries exhausted?}
-        H[Render MDL-05<br/>Account Creation Failure]
+        H[Render Account Creation Failure]
     end
 
     A --> B --> C --> D
@@ -1346,23 +1324,20 @@ Setting up your trading floor
 ![setup](/assets/screenlist/Loading_screen.png){center}
 
 | # | Component | Type | Required? | Description |
-| --- | --- | --- | --- | --- |
-| 1 | "Setting up your trading floor" interstitial (`MDL-06`) | Static/Animated Display | N/A | **Displaying Rules:** 4-step animated sequence. **⚠️ Cần xác nhận với BAL:** nội dung/label cụ thể của 4 bước. Holds indefinitely if `account_status = 'Guest'` on reload — no frontend timeout. |
-| 2 | "Account Creation Failure" (`MDL-05`) | Modal | N/A | **Displaying Rules:** `MSG-28`. Renders only after backend auto-retry is exhausted. |
+|---|---|---|---|---|
+| 1 | "Setting up your trading floor" interstitial | Static/Animated Display | N/A | **Displaying Rules:** 4-step animated sequence (Cần xác nhận: exact 4 step labels/copy — not detailed in fetched excerpt). Holds indefinitely if `account_status = 'Guest'` on reload — no frontend timeout. <br/ > **Behaviour Rules:** N/A — purely visual masking layer. |
+| 2 |"Account Creation Failure" | Modal (Popup) | N/A | **Displaying Rules:** Renders only after backend auto-retry is exhausted. (Cần xác nhận: exact copy and whether it offers a support-contact CTA.) |
 
 #### 4. BUSINESS RULES
 
 | # | BR Code | Function | Description |
-| --- | --- | --- | --- |
-| 1 | BR_8.3.1 | No Frontend Timeout at Phase 3 | Reload while `account_status = 'Guest'` → keeps showing wait state indefinitely. Reload while `account_status = 'Active_SIM'` → redirect to Auth0 login immediately. |
-| 2 | BR_8.3.2 | Backend Auto-Retry on Provisioning Failure | **⚠️ Cần xác nhận với BAL:** số lần retry / khoảng cách giữa các lần thử — chưa có thông tin cụ thể. |
+|---|---|---|---|
+| 1 | BR_01 | No Frontend Timeout at Phase 3 | Reload while `account_status = 'Guest'` → keeps showing wait state indefinitely. Reload while `account_status = 'Active_SIM'` → redirect to Auth0 login immediately. |
+| 2 | BR_02 | Backend Auto-Retry on Provisioning Failure | Full retry count/backoff policy not present in fetched excerpt|
 
 #### 5. MESSAGE LIST
 
-| # | Message Code | Type | Trigger |
-| --- | --- | --- | --- |
-| 1 | MSG-28 | Alert (Popup) | Backend auto-retry exhausted without successful provisioning |
+| # | Message Code | Type | Message (EN) | Message (VN) | Trigger |
+|---|---|---|---|---|---|
+| 1 |MSG_01 | Alert (Popup) | "Account Creation Failure" (Cần xác nhận: full copy) | (Cần xác nhận) | Backend auto-retry exhausted without successful provisioning |
 
-*Full message text: see MESSAGE CATALOG at the end of this document.*
-
----
