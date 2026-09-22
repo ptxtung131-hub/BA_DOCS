@@ -1,0 +1,63 @@
+site_name: Stack Trading - Checkout Flow 
+
+theme:
+  name: material
+  language: vi
+  logo: assets/logo.png
+  
+  palette:
+    # Chế độ Sáng (Light Mode)
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: slate            
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Chuyển sang chế độ tối
+
+    # Chế độ Tối (Dark Mode)
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: slate
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Chuyển sang chế độ sáng
+
+  features:
+    - navigation.tabs          # Menu dạng tab ngang ở phía trên
+    - navigation.tabs.sticky   # Cố định thanh tab khi cuộn trang
+    - navigation.sections      # Chia section ở menu bên trái
+    - navigation.top           # Nút cuộn nhanh lên đầu trang
+    - navigation.tracking      # Tự động highlight mục tương ứng khi cuộn
+    - toc.integrate            # Gộp mục lục bài viết vào sidebar bên trái
+    - search.suggest           # Gợi ý từ khóa khi tìm kiếm
+    - search.highlight         # Highlight từ khóa trong kết quả tìm kiếm
+    - content.code.copy        # Nút copy nhanh khối mã code
+
+markdown_extensions:
+  - attr_list                  # Hỗ trợ { target="_blank" }
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - tables
+  - admonition
+
+extra_javascript:
+  - https://unpkg.com/mermaid@10/dist/mermaid.min.js
+  - javascripts/mermaid.js
+
+plugins:
+  - search
+  - pdf2image
+
+extra_css:
+  - stylesheets/extra.css
