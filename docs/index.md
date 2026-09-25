@@ -5,7 +5,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Document Owner (this draft)** | Tùng Phạm 3 – BA Intern <br/ > D.GEX / D.GEX3 <br/ > SotaTek JSC |
+| **Document Owner (this draft)** | Tùng Phạm 3 – BA Intern HAHA <br/ > D.GEX / D.GEX3 <br/ > SotaTek JSC |
 | **Supervisor** | Huyền Đinh - BA Lead <br/ > D.GEX / D.GEX3 <br/ > SotaTek JSC |
 | **Source** | [RFQ_Stack Trading Prop Tech V7.pdf](assets/RFQ_%20Stack%20Trading%20Prop%20Tech%20V7.pdf){ target="_blank" } <br/ > [RFQ_ Website and Dashboard Implementation V7.pdf](assets/RFQ_%20Website%20and%20Dashboard%20Implementation%20V7.pdf){ target="_blank" } <br/ > [Zapier Integration V7.pdf](assets/Zapier%20Integration%20V7.pdf){ target="_blank" } |
 | **Wireframe Reference** | Figma: [BA_Wireframe](https://www.figma.com/design/nL9VJcF89TuX8foDtZB9VV/-BA-Wireframe--Stack-Trading-Design?node-id=5012-49457&t=zJPGrs1JBi0phm20-1){ target="_blank" } |
