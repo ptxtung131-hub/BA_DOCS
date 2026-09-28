@@ -227,25 +227,6 @@
   
   
     <li class="md-tabs__item">
-      <a href="../UC_main/" class="md-tabs__link">
-        
-  
-  
-    
-  
-  Associate Track Check Out
-
-      </a>
-    </li>
-  
-
-      
-        
-  
-  
-  
-  
-    <li class="md-tabs__item">
       <a href="../UC_main_ver_3/" class="md-tabs__link">
         
   
@@ -430,33 +411,6 @@
     
   
     Project: Stack Trading
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../UC_main/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Associate Track Check Out
   
 
     
@@ -732,6 +686,9 @@
   <h1>Full page state</h1>
 
 <h2 id="full-page-state-catalog">FULL-PAGE STATE CATALOG</h2>
+<blockquote>
+<p>Re-issued with <code>UC_main_ver_3.md</code>. Nội dung mapping không đổi; thêm cột Ghi chú.</p>
+</blockquote>
 <table>
 <thead>
 <tr>
@@ -739,6 +696,7 @@
 <th>Tên</th>
 <th>Dùng tại</th>
 <th>Message</th>
+<th>Ghi chú / PND</th>
 </tr>
 </thead>
 <tbody>
@@ -747,24 +705,28 @@
 <td>Region Block / Service Unavailable</td>
 <td>UC_1.4</td>
 <td>MSG-05</td>
+<td>Dead end. ⚠️ PND-24: spec vừa nói "chỉ có message, không link" vừa có nút Return to homepage; và 403 vs JSON <code>geo_blocked</code>. Chỉ dựa trên IP — PND-25.</td>
 </tr>
 <tr>
 <td>FPS-02</td>
 <td>Generic System Error</td>
 <td>UC_1.1, UC_4, UC_5, UC_6.1</td>
 <td>MSG-02, MSG-08, MSG-09, MSG-12</td>
+<td>Cùng một component, 4 câu chữ theo ngữ cảnh: khởi tạo (MSG-02), tải platform (MSG-08), tải market data (MSG-09), tính đơn hàng (MSG-12).</td>
 </tr>
 <tr>
 <td>FPS-03</td>
 <td>Refund In Progress</td>
-<td>UC_8.1</td>
+<td>UC_8.1 EX-8</td>
 <td>MSG-25</td>
+<td>Sau thanh toán, khi phát hiện vùng bị hạn chế. ⚠️ PND-05.</td>
 </tr>
 <tr>
 <td>FPS-04</td>
 <td>Refund Completed</td>
-<td>UC_8.1</td>
+<td>UC_8.1 EX-8</td>
 <td>MSG-26</td>
+<td>Trạng thái kế tiếp của FPS-03.</td>
 </tr>
 </tbody>
 </table>

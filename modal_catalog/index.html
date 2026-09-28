@@ -227,25 +227,6 @@
   
   
     <li class="md-tabs__item">
-      <a href="../UC_main/" class="md-tabs__link">
-        
-  
-  
-    
-  
-  Associate Track Check Out
-
-      </a>
-    </li>
-  
-
-      
-        
-  
-  
-  
-  
-    <li class="md-tabs__item">
       <a href="../UC_main_ver_3/" class="md-tabs__link">
         
   
@@ -430,33 +411,6 @@
     
   
     Project: Stack Trading
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../UC_main/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Associate Track Check Out
   
 
     
@@ -732,6 +686,9 @@
   <h1>Modal catalog</h1>
 
 <h2 id="modal-catalog">MODAL CATALOG</h2>
+<blockquote>
+<p>Re-issued with <code>UC_main_ver_3.md</code>. Cột <strong>Dùng tại</strong> được sửa theo cách ver_2 dùng thực tế; thêm cột <strong>Ghi chú / PND</strong>.</p>
+</blockquote>
 <table>
 <thead>
 <tr>
@@ -741,6 +698,7 @@
 <th>Dùng tại</th>
 <th>Điều kiện hiện</th>
 <th>Điều kiện đóng</th>
+<th>Ghi chú / PND</th>
 </tr>
 </thead>
 <tbody>
@@ -748,33 +706,37 @@
 <td>MDL-01</td>
 <td>Terms of Service</td>
 <td>Modal (thường)</td>
-<td>UC_1.2</td>
+<td>UC_1.2 (checkbox 2, hiển thị ở Step 5 / UC_6.1)</td>
 <td>User click link "Terms of Service"</td>
 <td>User đóng thủ công; không mất dữ liệu form phía sau</td>
+<td>Nội dung = trang public <code>/terms</code>.</td>
 </tr>
 <tr>
 <td>MDL-02</td>
 <td>Processing Overlay</td>
 <td>Modal (blocking)</td>
-<td>UC_7.1, UC_8.1</td>
+<td>UC_7.3, UC_7.4, UC_8.1 (CC đi qua UC_8.1)</td>
 <td>Ngay sau khi bấm CTA thanh toán</td>
 <td>Tự đóng khi có kết quả (→ MDL-03 hoặc banner lỗi)</td>
+<td>Text <code>MSG-15</code>. Tự tắt sau timeout FE 10 phút → <code>MSG-22</code> (UC_8.1 EX-2).</td>
 </tr>
 <tr>
 <td>MDL-03</td>
 <td>Success Confirmation</td>
 <td>Modal (auto-dismiss)</td>
-<td>UC_7.1, UC_8.1</td>
+<td>UC_8.1</td>
 <td>Thanh toán thành công</td>
 <td>Tự đóng sau ~2 giây, chuyển sang UC_8.2</td>
+<td>Text <code>MSG-16</code>. ⚠️ PND-10: cơ chế chuyển sang UC_8.2 (UC_8.2 chỉ kích hoạt bằng link trong Email 2).</td>
 </tr>
 <tr>
 <td>MDL-04</td>
 <td>Email Lock</td>
 <td>Modal (blocking, đếm ngược 15 phút)</td>
-<td>UC_7.1, UC_8.1</td>
+<td>UC_7.1 (mọi lần mount), UC_8.1</td>
 <td>5 lần thanh toán thất bại liên tiếp</td>
 <td>Hết 15 phút</td>
+<td>Text <code>MSG-14</code>. Mọi input bên dưới bị disable. Câu hỏi mở: <code>Q-E22</code>.</td>
 </tr>
 <tr>
 <td>MDL-05</td>
@@ -783,6 +745,7 @@
 <td>UC_8.3</td>
 <td>Backend đã tự thử lại hết số lần cho phép mà vẫn lỗi</td>
 <td>User đóng và liên hệ support</td>
+<td>Text <code>MSG-28</code>. Số lần retry chưa xác định — PND-07. Reload sau khi đóng: <code>Q-E27</code>.</td>
 </tr>
 <tr>
 <td>MDL-06</td>
@@ -791,6 +754,7 @@
 <td>UC_8.3</td>
 <td>Ngay sau khi Account Claim (UC_8.2) thành công</td>
 <td>Tự chuyển sang màn hình login; nếu lỗi → MDL-05</td>
+<td>4 bước animation, nhãn chưa chốt — PND-08. Không có timeout FE (<code>BR_8.3.1</code>).</td>
 </tr>
 <tr>
 <td>MDL-07</td>
@@ -799,6 +763,7 @@
 <td>UC_8.2</td>
 <td>JWT trong link kích hoạt đã hết hạn (quá 48h)</td>
 <td>User bấm [Resend link] → nhận email mới (MSG-27)</td>
+<td>Endpoint <code>POST /public/resend-activation-link</code> luôn trả HTTP 200 (<code>CR-12</code>).</td>
 </tr>
 </tbody>
 </table>

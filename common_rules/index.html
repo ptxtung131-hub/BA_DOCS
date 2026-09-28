@@ -227,25 +227,6 @@
   
   
     <li class="md-tabs__item">
-      <a href="../UC_main/" class="md-tabs__link">
-        
-  
-  
-    
-  
-  Associate Track Check Out
-
-      </a>
-    </li>
-  
-
-      
-        
-  
-  
-  
-  
-    <li class="md-tabs__item">
       <a href="../UC_main_ver_3/" class="md-tabs__link">
         
   
@@ -430,33 +411,6 @@
     
   
     Project: Stack Trading
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../UC_main/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Associate Track Check Out
   
 
     
@@ -732,12 +686,16 @@
   <h1>Common rules</h1>
 
 <h2 id="common-rules">COMMON RULES</h2>
+<blockquote>
+<p>Re-issued with <code>UC_main_ver_3.md</code>. Cột <strong>Áp dụng tại</strong> mới. Không thêm mã CR mới.</p>
+</blockquote>
 <table>
 <thead>
 <tr>
 <th>Code</th>
 <th>Tên</th>
 <th>Nội dung</th>
+<th>Áp dụng tại</th>
 </tr>
 </thead>
 <tbody>
@@ -745,66 +703,79 @@
 <td><strong>CR-01</strong></td>
 <td>Dropdown Display Behavior</td>
 <td>Mọi dropdown phải hiển thị placeholder rõ ràng (vd. "Select primary market") thay vì tự chọn sẵn option đầu tiên. Không có lựa chọn mặc định trừ khi có rule riêng nói khác (vd. platform tự chọn khi chỉ có 1 kết quả — <code>BR_4.2</code>).</td>
+<td>UC_1.3 (Primary Market), UC_4, UC_6.1 (Country / State / City / Shirt Size)</td>
 </tr>
 <tr>
 <td><strong>CR-02</strong></td>
 <td>Email Field Validation</td>
 <td>Email là bắt buộc, phải đúng định dạng chuẩn, báo lỗi inline ngay khi rời field nếu sai định dạng.</td>
+<td>UC_1.3, UC_6.1 (Email), UC_6.2 (backend cũng validate)</td>
 </tr>
 <tr>
 <td><strong>CR-03</strong></td>
 <td>Required Text Field Validation</td>
 <td>Text field bắt buộc phải báo lỗi inline nếu để trống khi submit; không chặn nhập liệu, chỉ chặn submit.</td>
+<td>UC_1.3, UC_6.1, UC_7.2 (Name on card), UC_8.2 (Phone)</td>
 </tr>
 <tr>
 <td><strong>CR-04</strong></td>
 <td>Monetary Value Display Format</td>
 <td>Mọi giá trị tiền tệ hiển thị dạng <code>$X,XXX.XX</code> — luôn có ký hiệu <code>$</code>, dấu phẩy ngăn cách hàng nghìn, 2 chữ số thập phân. Số âm (discount) hiển thị dạng <code>−$XX.XX</code>.</td>
+<td>UC_1.5, UC_3 (bảng giá, dữ liệu gói), UC_5 (<code>$0.00</code> feed), UC_7.1, UC_7.5</td>
 </tr>
 <tr>
 <td><strong>CR-05</strong></td>
 <td>Campaign / UTM Parameter Capture &amp; Persistence</td>
-<td>Tham số UTM trên URL chỉ được đọc <strong>một lần</strong> khi user vào trang lần đầu, lưu vào <code>localStorage</code>, và được tái sử dụng ở mọi bước gửi request sau đó (Step 5, Step 7) — không parse lại từ URL mỗi lần.</td>
+<td>Tham số UTM trên URL chỉ được đọc <strong>một lần</strong> khi user vào trang lần đầu, lưu vào <code>localStorage</code>, và được tái sử dụng ở mọi bước gửi request sau đó (Waitlist, Step 5, Step 7) — không parse lại từ URL mỗi lần.</td>
+<td>UC_1.3, UC_6.1 / UC_6.2, UC_8.1</td>
 </tr>
 <tr>
 <td><strong>CR-06</strong></td>
 <td>Submit Button State During Async Request</td>
-<td>Bất kỳ button nào kích hoạt gọi API đều phải: disable ngay khi click → hiện trạng thái xử lý → chỉ re-enable khi có kết quả rõ ràng (thành công hoặc thất bại). Mục đích: chống submit trùng.</td>
+<td>Bất kỳ button nào <strong>kích hoạt gọi API</strong> đều phải: disable ngay khi click → hiện trạng thái xử lý → chỉ re-enable khi có kết quả rõ ràng (thành công hoặc thất bại). Mục đích: chống submit trùng. <em>Không áp dụng cho button chỉ điều hướng phía client (ví dụ [Next] ở Step 1–4).</em></td>
+<td>UC_1.3 [Join Waitlist], UC_6.1 [Next], UC_7.5 [Apply]/[Remove], UC_8.1 CTA, UC_8.2 [Activate Account]</td>
 </tr>
 <tr>
 <td><strong>CR-07</strong></td>
 <td>Step Data Persistence on Back-Navigation</td>
-<td>Dữ liệu đã nhập ở một bước phải được giữ nguyên nếu user quay lại bước đó sau này trong cùng phiên — chỉ mất khi refresh toàn trang. Ngoại lệ: nếu một lựa chọn ở bước trước đó thay đổi và bước sau phụ thuộc vào nó, bước sau phải reset theo rule riêng (vd. <code>BR_2.3</code>).</td>
+<td>Dữ liệu đã nhập ở một bước phải được giữ nguyên nếu user quay lại bước đó sau này trong cùng phiên — chỉ mất khi refresh toàn trang. Ngoại lệ: nếu một lựa chọn ở bước trước đó thay đổi và bước sau phụ thuộc vào nó, bước sau phải reset theo rule riêng (vd. <code>BR_2.3</code>: đổi asset class → reset Step 3; Step 5 vẫn giữ). ⚠️ Cụm "chỉ mất khi refresh" đang mâu thuẫn với <code>BR_2.2</code> — xem PND-23.</td>
+<td>UC_2 → UC_6.1, UC_7.1</td>
 </tr>
 <tr>
 <td><strong>CR-08</strong></td>
 <td>Conditional / Cascading Field Display (Address Fields)</td>
 <td>Field địa chỉ có thể ẩn/hiện hoặc phụ thuộc lẫn nhau theo lựa chọn trước đó: State/Region ẩn nếu quốc gia không có vùng con; City chỉ hiện sau khi chọn Region và luôn refetch theo Region đã chọn; ZIP ẩn/hiện theo từng quốc gia.</td>
+<td>UC_6.1</td>
 </tr>
 <tr>
 <td><strong>CR-09</strong></td>
 <td>Immediate vs. Deferred Validation Timing</td>
-<td>Có 2 loại kiểm tra khác nhau về thời điểm chạy: (a) kiểm tra rẻ/tại chỗ (vd. sanctions pre-check) chạy <strong>ngay lập tức</strong> mỗi khi field thay đổi; (b) kiểm tra tốn kém/gọi dịch vụ ngoài (vd. tính thuế) chỉ chạy <strong>một lần duy nhất</strong> khi user bấm nút submit của bước đó.</td>
+<td>Có 2 loại kiểm tra khác nhau về thời điểm chạy: (a) kiểm tra rẻ/tại chỗ (vd. sanctions pre-check theo <strong>billing country/region</strong>) chạy <strong>ngay lập tức</strong> mỗi khi field thay đổi; (b) kiểm tra tốn kém/gọi dịch vụ ngoài (vd. tính thuế) chỉ chạy <strong>một lần duy nhất</strong> khi user bấm nút submit của bước đó. <em>Lưu ý: Gate 2 Geoblock ở Step 0 (UC_1.4) dựa trên IP, là cơ chế độc lập, không thuộc CR-09.</em></td>
+<td>UC_6.1</td>
 </tr>
 <tr>
 <td><strong>CR-10</strong></td>
 <td>Secure Payment Field Handling</td>
 <td>Các field nhạy cảm liên quan thẻ thanh toán (số thẻ, ngày hết hạn, CVC) bắt buộc dùng hosted field/iframe do cổng thanh toán cung cấp — tuyệt đối không dùng input HTML thường.</td>
+<td>UC_7.2</td>
 </tr>
 <tr>
 <td><strong>CR-11</strong></td>
 <td>Raw Gateway Error Passthrough (Payment Failures Only)</td>
 <td>Khi thanh toán thất bại, hiển thị nguyên văn lý do trả về từ cổng thanh toán — không viết lại thành thông báo chung chung — để user có thông tin cụ thể để xử lý.</td>
+<td>UC_7.2, UC_7.3, UC_7.4, UC_8.1 EX-1</td>
 </tr>
 <tr>
 <td><strong>CR-12</strong></td>
 <td>Anti-Enumeration Response for Public Email-Based Actions</td>
-<td>Bất kỳ endpoint công khai (không cần đăng nhập) nào thao tác theo địa chỉ email đều phải trả về <strong>cùng một phản hồi</strong> dù email đó có tồn tại trong hệ thống hay không.</td>
+<td>Bất kỳ endpoint công khai (không cần đăng nhập) nào thao tác theo địa chỉ email đều phải trả về <strong>cùng một phản hồi</strong> dù email đó có tồn tại trong hệ thống hay không. <em>Tương tự về mục đích: CRM dedup ở Waitlist (<code>BR_1.3.3</code>). Chưa rõ <code>POST /capture-lead</code> có tuân thủ không — xem PND-04 / <code>Q-E14</code>.</em></td>
+<td>UC_8.2 (<code>/public/resend-activation-link</code>), UC_1.3 (tương tự)</td>
 </tr>
 <tr>
 <td><strong>CR-13</strong></td>
 <td>Background Result Listening for Asynchronous Payment Confirmation</td>
-<td>Nếu user đóng/rời khỏi giao diện đang chờ xác nhận thanh toán không đồng bộ trước khi có kết quả, hệ thống vẫn phải tiếp tục lắng nghe kết quả ở nền — không được huỷ giao dịch chỉ vì user rời màn hình.</td>
+<td>Nếu user đóng/rời khỏi giao diện đang chờ xác nhận thanh toán không đồng bộ trước khi có kết quả, hệ thống vẫn phải tiếp tục lắng nghe kết quả ở nền — không được huỷ giao dịch chỉ vì user rời màn hình. <em>Hiện chỉ mô tả cho ví (Apple Pay / Google Pay); phạm vi với thẻ: <code>Q-E25</code>.</em></td>
+<td>UC_7.1 AF-2, UC_7.3, UC_7.4, UC_8.1 AF-1</td>
 </tr>
 </tbody>
 </table>

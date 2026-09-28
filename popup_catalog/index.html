@@ -225,25 +225,6 @@
   
   
     <li class="md-tabs__item">
-      <a href="../UC_main/" class="md-tabs__link">
-        
-  
-  
-    
-  
-  Associate Track Check Out
-
-      </a>
-    </li>
-  
-
-      
-        
-  
-  
-  
-  
-    <li class="md-tabs__item">
       <a href="../UC_main_ver_3/" class="md-tabs__link">
         
   
@@ -428,33 +409,6 @@
     
   
     Project: Stack Trading
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../UC_main/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Associate Track Check Out
   
 
     
@@ -730,6 +684,10 @@
   <h1>Popup catalog</h1>
 
 <h2 id="popup-catalog">POPUP CATALOG</h2>
+<blockquote>
+<p>Re-issued with <code>UC_main_ver_3.md</code>. Thêm <code>POP-03</code>, <code>POP-04</code>; mở rộng nơi dùng của <code>POP-02</code>.
+Quy ước: <strong>Popup</strong> = thông báo chặn/không chặn ngắn (Alert). <strong>Modal</strong> có nội dung/hành vi riêng → xem <code>modal_catalog.md</code>.</p>
+</blockquote>
 <table>
 <thead>
 <tr>
@@ -738,22 +696,41 @@
 <th>Dùng tại</th>
 <th>Message</th>
 <th>Điều kiện hiện</th>
+<th>Ghi chú / PND</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>POP-01</td>
 <td>No Platforms Available</td>
-<td>UC_4</td>
+<td>UC_4 (Step 3)</td>
 <td>MSG-07</td>
 <td>Danh sách platform trả về rỗng</td>
+<td>⚠️ PND-28: chưa định nghĩa user làm gì tiếp (đóng / Back / đổi asset class). Khác với Step 4 (rỗng = lỗi full-page FPS-02).</td>
 </tr>
 <tr>
 <td>POP-02</td>
 <td>Price Changed</td>
-<td>UC_1.5, UC_8.1</td>
+<td>UC_1.5, UC_7.5 EX-6, UC_8.1 EX-6</td>
 <td>MSG-06</td>
-<td>Giá thay đổi giữa lúc user xem và lúc thanh toán</td>
+<td>Giá thay đổi giữa lúc user xem và lúc thanh toán (<code>PRICE_CHANGED</code>)</td>
+<td>Nút [Refresh now] đóng overlay + làm mới Order Summary, <strong>không</strong> reload trang (<code>BR_1.5.2</code>).</td>
+</tr>
+<tr>
+<td>POP-03 🆕</td>
+<td>No Payment Methods Available</td>
+<td>UC_7.1 EX-1</td>
+<td>MSG-13</td>
+<td><code>methods[]</code> rỗng</td>
+<td>Blocking — user không thể tiếp tục. Mã này được ver_2 dùng nhưng chưa có trong catalog cũ.</td>
+</tr>
+<tr>
+<td>POP-04 🆕</td>
+<td>Waitlist Joined</td>
+<td>UC_1.3</td>
+<td>MSG-03</td>
+<td>Cả 2 lời gọi CRM (Klaviyo + ActiveCampaign) thành công</td>
+<td>Chứa [Return to Homepage]. Bổ sung để mọi MSG kiểu Popup đều có mã component.</td>
 </tr>
 </tbody>
 </table>
