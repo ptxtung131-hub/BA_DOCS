@@ -6,21 +6,21 @@
 | --- | --- |
 | **Version** | ver_3 (unified draft for BA review) |
 | **Scope of this file** | Step 0 → Step 7 (UC_1.1 – UC_8.3), all in **one unified 9-section layout**. |
-| **Sources** | Step 0–4 content: `UC_main.md` (round 1), re-laid-out and extended with alternative / exception flows. Step 5–7 content: `UC_main_ver_2.md` (carried over unchanged except the edits listed in the CHANGE LOG). RFQ V7 files were used only to cross-check and flag gaps — they never override the spec. |
-| **Companion files** | `common_rules.md` (CR) · `message_catalog.md` (MSG) · `modal_catalog.md` (MDL) · `popup_catalog.md` (POP) · `full_page_state.md` (FPS) — all re-issued and aligned with this file. `UC_QnA.md` — questions derived from every open point plus extra edge-case questions. |
-| **Pending items** | `PND-01` … `PND-22` are kept exactly as flagged in ver_2 (⚠️). `PND-23` … `PND-30` are 🆕 **new in ver_3**, found while unifying Steps 0–4 with Steps 5–7 (table below). Full wording, options and owners: `UC_QnA.md`. |
+| **Sources** | Step 0–4 content: `UC_main.md` (round 1), re-laid-out and extended with alternative / exception flows. <br > Step 5–7 content: `UC_main_ver_2.md`. |
+| **Companion files** | `common_rules.md` (CR) <br>  `message_catalog.md` (MSG)  <br >  `modal_catalog.md` (MDL)  <br > `popup_catalog.md` (POP) <br >  `full_page_state.md` (FPS) — all re-issued and aligned with this file.|
+| **Pending items** | `PND-01` … `PND-22` are kept exactly as flagged in ver_2 (⚠️). <br> `PND-23` … `PND-30` are **new in ver_3**, found while unifying Steps 0–4 with Steps 5–7 (table below).|
 
 ## HOW TO READ THIS FILE
 
-- Section numbers are identical in every UC: 1 Overview · 2 Trigger · 3 Pre-conditions · 4 Post-conditions · 5 Actors · 6 Main Flow · 7 Alternative Flows · 8 Exception Flows · 9 Business Rules & Data Validation.
-- Section 9 has 2 parts everywhere — **9.1 Business Rules** (original `BR_x` codes unchanged) and **9.2 Data Validation & Component Rules** (the old "Screen Description") — plus an optional **9.3 Reference Data** where a UC owns a data snapshot (routing/payload, Table J, package data, platform registry).
+- Section numbers are identical in every UC: <br> 1 Overview <br> 2 Trigger <br> 3 Pre-conditions <br> 4 Post-conditions <br> 5 Actors <br> 6 Main Flow <br> 7 Alternative Flows <br>8 Exception Flows <br>9 Business Rules & Data Validation.
+- Section 9 has 2 parts everywhere **9.1 Business Rules** (original `BR_x` codes unchanged) and **9.2 Data Validation & Component Rules** (the old "Screen Description") — plus an optional **9.3 Reference Data** where a UC owns a data snapshot (routing/payload, Table J, package data, platform registry).
 - `AF-x` = Alternative Flow, `EX-x` = Exception Flow (unique inside each UC). Cross-reference format: `UC_8.1 §8 EX-6`.
 - Codes `CR-xx`, `MSG-xx`, `POP-xx`, `MDL-xx`, `FPS-xx` are defined in the companion catalog files; full message text is not repeated here.
-- ⚠️ `PND-xx` = an open point. `Q-E##` = an edge-case question in `UC_QnA.md` that the spec does not answer yet (no PND number needed until the BA decides to track it).
+- ⚠️ `PND-xx` = an open point.
 - Mermaid diagrams are kept for UCs with real branching (UC_1.1, UC_1.3, UC_4, UC_6.1, UC_7.5, UC_8.2, UC_8.3). Other flows are fully described by numbered steps. Original diagrams remain in `UC_main.md`.
 - **Step numbering:** "Step N" is the user-facing screen step (progress bar). UC numbers are offset (UC_2 = Step 1 … UC_8.x = Step 7). Progress bar: Futures 7 steps, Forex 6 steps (`BR_2.3`).
 
-## 🆕 NEW PENDING ITEMS IN ver_3
+## NEW PENDING ITEMS IN ver_3
 
 | ID | Topic | Where it shows up |
 | --- | --- | --- |
@@ -33,7 +33,7 @@
 | PND-29 | Price drift between Step 2 display and Step 5 `/calculate-cart` (Founder sold out) is silent until Step 6 | UC_1.5, UC_6.1 |
 | PND-30 | Promo state when the user goes Back (to Step 5 or Step 2) after applying a code; Step 5 re-fires `/calculate-cart` with `promo_code = NULL` | UC_6.1, UC_7.1, UC_7.5, UC_3 |
 
-> `PND-20` is not referenced anywhere in ver_2; it is kept reserved (see `UC_QnA.md`).
+> `PND-20` is not referenced anywhere in ver_2; it is kept reserved.
 
 ## TABLE OF CONTENTS
 

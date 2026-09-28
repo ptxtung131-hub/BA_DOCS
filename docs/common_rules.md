@@ -1,6 +1,6 @@
 ## COMMON RULES
 
-> Re-issued with `UC_main_ver_3.md`. Cột **Áp dụng tại** mới. Không thêm mã CR mới.
+> Re-issued with `UC_main_ver_3.md`.
 
 | Code | Tên | Nội dung | Áp dụng tại |
 | --- | --- | --- | --- |

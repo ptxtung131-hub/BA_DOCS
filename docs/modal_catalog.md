@@ -1,6 +1,6 @@
 ## MODAL CATALOG
 
-> Re-issued with `UC_main_ver_3.md`. Cột **Dùng tại** được sửa theo cách ver_2 dùng thực tế; thêm cột **Ghi chú / PND**.
+> Re-issued with `UC_main_ver_3.md`. Thêm cột **Ghi chú / PND**.
 
 | Code | Tên Modal | Loại | Dùng tại | Điều kiện hiện | Điều kiện đóng | Ghi chú / PND |
 | --- | --- | --- | --- | --- | --- | --- |

@@ -1,7 +1,6 @@
 ## MESSAGE CATALOG
 
 > Re-issued with `UC_main_ver_3.md`. Thêm `MSG-29`, `MSG-30`, `MSG-31`; thêm cột **Component** (mã popup/modal/full-page tương ứng) và **Dùng tại**. Câu chữ EN/VN của MSG-01…MSG-28 giữ nguyên.
-> **Trạng thái:** ✅ = đã có trong spec gốc · 📝 DRAFT = câu chữ do BA đề xuất, cần copywriter/BAL duyệt.
 
 | Code | Type | Component | Dùng tại | Message (EN) | Message (VN) |
 | --- | --- | --- | --- | --- | --- |
@@ -33,14 +32,14 @@
 | MSG-26 | Full-page (info) | FPS-04 | UC_8.1 EX-8 | Your refund has been completed. Please allow a few business days for the funds to appear in your account. | Khoản hoàn tiền của bạn đã hoàn tất. Vui lòng chờ vài ngày làm việc để tiền về tài khoản. |
 | MSG-27 | Email | MDL-07 (nút [Resend link]) | UC_8.2 AF-2 | Subject: Your activation link — Here's your new link to activate your Stack Trading account: [link]. This link expires in 48 hours. | Tiêu đề: Link kích hoạt của bạn — Đây là link kích hoạt tài khoản Stack Trading mới của bạn: [link]. Link có hiệu lực trong 48 giờ. |
 | MSG-28 | Modal | MDL-05 | UC_8.3 EX-1 | We're having trouble setting up your account. Please contact support so we can help. | Chúng tôi gặp sự cố khi thiết lập tài khoản của bạn. Vui lòng liên hệ hỗ trợ để được trợ giúp. |
-| MSG-29 ✅ | Inline (static, in-flight) | — | UC_6.1 (main step 9, §9.2 row 11) | Calculating regional taxes... | Đang tính thuế theo khu vực... |
+| MSG-29 | Inline (static, in-flight) | — | UC_6.1 (main step 9, §9.2 row 11) | Calculating regional taxes... | Đang tính thuế theo khu vực... |
 | MSG-30 📝 DRAFT | Inline Validation | — | UC_6.1 EX-6 (PND-11) | Email addresses don't match. Please check and try again. | Email xác nhận không khớp. Vui lòng kiểm tra và thử lại. |
 | MSG-31 📝 DRAFT | Inline (error) | — | UC_7.5 EX-4 (PND-12) | We couldn't apply your promo code right now. Please try again. | Không thể áp dụng mã giảm giá lúc này. Vui lòng thử lại. |
 
 > **Ghi chú:**
 > - `MSG-29` xuất hiện trong ver_2 kèm câu chữ "Calculating regional taxes..." (lấy từ spec gốc UC_6.1); bản VN là đề xuất dịch.
-> - `MSG-30`, `MSG-31`: câu chữ **do BA soạn tạm** vì spec chưa có; đổi nội dung không ảnh hưởng logic (PND-11, PND-12).
-> - Catalog hiện chỉ có EN/VN; Flow D (Quebec) yêu cầu **toàn bộ** UI bằng tiếng Pháp nhưng chưa có cột FR — PND-26.
+> - `MSG-30`, `MSG-31`: câu chữ **do BA soạn tạm** vì spec chưa có; đổi nội dung không ảnh hưởng logic.
+> - Catalog hiện chỉ có EN/VN; Flow D (Quebec) yêu cầu **toàn bộ** UI bằng tiếng Pháp nhưng chưa có cột FR.
 > - Lỗi thanh toán bị từ chối (decline) hiển thị **nguyên văn từ gateway** (`CR-11`) nên không có mã MSG riêng.
 
 ---

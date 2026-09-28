@@ -1,6 +1,6 @@
 ## FULL-PAGE STATE CATALOG
 
-> Re-issued with `UC_main_ver_3.md`. Nội dung mapping không đổi; thêm cột Ghi chú.
+> Re-issued with `UC_main_ver_3.md`.
 
 | Code | Tên | Dùng tại | Message | Ghi chú / PND |
 | --- | --- | --- | --- | --- |
