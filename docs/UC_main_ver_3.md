@@ -52,11 +52,11 @@
 
 ---
 
-# STEP 0 — SYSTEM INITIALIZATION & ACCESS GATES
+## STEP 0 — SYSTEM INITIALIZATION & ACCESS GATES
 
-## UC_1.1 — System Status API
+### UC_1.1 — System Status API
 
-### 1. OVERVIEW (Mô tả tổng quan)
+#### 1. OVERVIEW (Mô tả tổng quan)
 
 | Field | Content |
 | --- | --- |
@@ -66,26 +66,60 @@
 | **List Screen** | None — background call with no screen of its own. Its result decides which screen the user actually sees: Step 1 (UC_2), the Waitlist page (UC_1.3), or the region-block page (UC_1.4). Checkout page is a dedicated route with no Marketing Header/Footer, except on the Gate 1 redirect. |
 | **Related UC** | UC_1.2 (flow variants), UC_1.3 (Gate 1), UC_1.4 (Gate 2), UC_1.5 (pricing), UC_2 (first screen), UC_7.1 (reads `methods[]`) |
 
-### 2. TRIGGER (Sự kiện kích hoạt)
+#### 2. TRIGGER (Sự kiện kích hoạt)
 
 User navigates to the dedicated checkout page URL (page load). A full page refresh triggers it again (`BR_1.1.1`).
 
-### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
+#### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
 
 - User is on the checkout page.
 - No `GET /system/status` response exists yet for the current page load.
 
-### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
+#### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
+
+Response Payload Schema:
+```json
+{
+  "Global_Var_Allow_New_Signups": boolean,
+  "is_founder_cohort":    boolean,
+  "pricing_tiers": {        // object — keyed by product_id
+    "EVAL_L1":            float,  // raw price, no currency symbol (e.g. 650.00)
+    "EVAL_L2":            float,
+    "EVAL_L5":            float
+  },
+  "geo_blocked":          boolean,
+  "geo_country":          string,
+  "geo_region":           string,
+  "required_flow":        string,
+  "methods": [
+    {
+      "id":               string,
+      "label":            string,
+      "explanatory_text": string,
+      "cta_text":         string,
+      "icon_tags":        [string]
+    }
+  ],
+  "is_launch_phase":      boolean,
+  "historical_pass_rate": float,
+  "zip_requirements": {     // object — keyed by country_iso2, built from country_zip_requirements table
+    "US":                 boolean,
+    "CA":                 boolean,
+    "IE":                 boolean
+    // ... one entry per country in country_zip_requirements
+  }
+}
+```
 
 - Full response payload is stored in global checkout state (`BR_1.1.2`).
 - Gate 1 (Waitlist) and Gate 2 (Geoblock) conditions are evaluated immediately.
 - Exactly one of three outcomes: Step 1 rendered · redirect to Waitlist · region-block page.
 
-### 5. ACTORS (Tác nhân tham gia)
+#### 5. ACTORS (Tác nhân tham gia)
 
 User (implicit — triggers via page load) · System (FE + BE) · Cloudflare (geo-IP headers `CF-IPCountry` / `CF-Region`)
 
-### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
+#### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
 
 1. User navigates to the checkout page.
 2. FE calls `GET /system/status`. Cloudflare headers `CF-IPCountry` / `CF-Region` are auto-included.
@@ -109,7 +143,7 @@ flowchart TD
     B -. HTTP 5xx .-> X2[FPS-02 / MSG-02]
 ```
 
-### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
+#### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
 
 | ID | Condition | Behaviour |
 | --- | --- | --- |
@@ -119,7 +153,7 @@ flowchart TD
 | AF-4 | User navigates between Steps 1–5 | No new call; all steps read cached state (`BR_1.1.1`, `BR_1.1.2`). |
 | AF-5 | Full page refresh on any step | A new `GET /system/status` re-hydrates global state. What happens to the user's previous selections is ⚠️ PND-23. |
 
-### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
+#### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
 
 | ID | Scenario | Handling | Message |
 | --- | --- | --- | --- |
@@ -130,9 +164,9 @@ flowchart TD
 
 > HTTP 403 is **not** an error state — it is the intended Gate 2 signal (AF-1 → UC_1.4).
 
-### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
+#### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
 
-#### 9.1 Business Rules
+##### 9.1 Business Rules
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
@@ -141,11 +175,11 @@ flowchart TD
 | 3 | BR_1.1.3 | Gate Order & Short-Circuit | Backend order is fixed: Geo-IP → Waitlist → UI Routing → Gateway Filtering → Cohort & Pricing → Launch Phase. A hit at Geo-IP or Waitlist stops all later steps. *(Formalised from the Basic Flow; no new behaviour.)* |
 | 4 | BR_1.1.4 | Fail-Open Defaults for Geo / Routing | Missing geo headers or missing routing rows never block the user — they fall back to US / Flow A. Only a positive match on `Compliance_geo_restrictions` blocks. *(Formalised from original exceptions E3/E4.)* |
 
-#### 9.2 Data Validation & Component Rules
+##### 9.2 Data Validation & Component Rules
 
 N/A — no screen component.
 
-#### 9.3 Reference Data — State payload
+##### 9.3 Reference Data — State payload
 
 Fields the rest of the flow reads from the cached response. Field names are those used across the spec; the exact response schema is not documented in the source (⚠️ PND-21).
 
@@ -160,7 +194,7 @@ Fields the rest of the flow reads from the cached response. Field names are thos
 | `is_founder_cohort`, `pricing_tiers` | 3e | UC_1.5, UC_3 |
 | `is_launch_phase`, `historical_pass_rate` | 3f | UC_1.2 (pass-rate disclosure) |
 
-#### 📝 BA NOTE — Sections to add on rework (10–14)
+##### 📝 BA NOTE — Sections to add on rework (10–14)
 
 - **§10 API Contracts:** full `GET /system/status` response schema (including 403 body and the early-return shape at the Waitlist gate), `zip_requirements` and `methods[]` structures → PND-21.
 - **§11 Regional Compliance Matrix:** see UC_1.2 — PND-22.
@@ -170,9 +204,9 @@ Fields the rest of the flow reads from the cached response. Field names are thos
 
 ---
 
-## UC_1.2 — Geo-Based Compliance UI Variants (Flow A–G)
+### UC_1.2 — Geo-Based Compliance UI Variants (Flow A–G)
 
-### 1. OVERVIEW (Mô tả tổng quan)
+#### 1. OVERVIEW (Mô tả tổng quan)
 
 | Field | Content |
 | --- | --- |
@@ -182,23 +216,23 @@ Fields the rest of the flow reads from the cached response. Field names are thos
 | **List Screen** | Step 5 (PII & Compliance) — 7 flow-specific wireframe variants |
 | **Related UC** | UC_1.1 (source of `required_flow`), UC_1.4 (Flow F), UC_6.1 (host screen) |
 
-### 2. TRIGGER (Sự kiện kích hoạt)
+#### 2. TRIGGER (Sự kiện kích hoạt)
 
 Step 5 renders.
 
-### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
+#### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
 
 `required_flow` is stored in global checkout state (from Step 0).
 
-### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
+#### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
 
 The correct flow-specific compliance content (disclosures + checkboxes) is displayed.
 
-### 5. ACTORS (Tác nhân tham gia)
+#### 5. ACTORS (Tác nhân tham gia)
 
 System
 
-### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
+#### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
 
 1. Step 5 mounts.
 2. FE reads `required_flow` from state.
@@ -218,7 +252,7 @@ System
 
 ⚠️ PND-22: the matrix lacks Flow H/I/J and lists Belgium/Bulgaria as both blocked and Flow C.
 
-### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
+#### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
 
 | ID | Condition | Behaviour |
 | --- | --- | --- |
@@ -232,23 +266,23 @@ System
 | AF-8 | Country matches no routing row | Backend defaults to Flow A (UC_1.1 EX-4). |
 | AF-9 | Click "Terms of Service" in checkbox 2 | Opens `MDL-01`; no navigation, no form reset; closing preserves all form state. |
 
-### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
+#### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
 
 | ID | Scenario | Handling | Message |
 | --- | --- | --- | --- |
 | EX-1 | Routing itself has no failure state | Unmatched country → Flow A at backend level (UC_1.1). | — |
 | EX-2 | `required_flow` value outside the FE enum (Ops adds a flow in DB without an FE deploy) | Not defined (`BR_1.2.1`: FE mapping is hardcoded). See `Q-E06`. | — |
 
-### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
+#### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
 
-#### 9.1 Business Rules
+##### 9.1 Business Rules
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
 | 1 | BR_1.2.1 | Flow-to-UI Mapping is Frontend-Hardcoded | `required_flow` → UI content is a fixed enum switch in FE. Changing content requires an FE code change. |
 | 2 | BR_1.2.2 | Country-to-Flow Assignment is Dynamic (DB-Driven) | Which country maps to which flow lives in the `checkout_ui_routing` PostgreSQL table — Ops-configurable without a code deploy. |
 
-#### 9.2 Data Validation & Component Rules
+##### 9.2 Data Validation & Component Rules
 
 Flow A: Global Default UI
 ![Flow A](assets/screenlist/CheckoutFlowA_GlobalDefault.png)
@@ -262,7 +296,7 @@ Flow A: Global Default UI
 | 5 | UAE Disclaimer (Flow E) | Static Text | N/A | Above standard checkboxes, Flow E only. Text: *"Stack Trading is a U.S.-domiciled entity and is not licensed, registered, or regulated by the Dubai Financial Services Authority (DFSA) or the Abu Dhabi Global Market (ADGM)."* | N/A |
 | 6 | Hypothetical Performance Disclaimer (all flows) | Static Text | N/A | Mandatory legal disclaimer on simulated performance. Always visible, non-collapsible, all flows. Full CFTC-style disclaimer text. No interaction. | N/A |
 
-#### 📝 BA NOTE — Sections to add on rework (10–14)
+##### 📝 BA NOTE — Sections to add on rework (10–14)
 
 - **§11 Regional Compliance Matrix (priority):** single matrix Country/Region → Flow → disclosures → checkbox count → language → blocked (PND-22, PND-25, PND-26).
 - **§13 Legal:** the flow is decided by geo-IP; confirm that legal accepts IP-based flow selection for EU/UK/Quebec purchasers with a different billing country (PND-25).
@@ -270,9 +304,9 @@ Flow A: Global Default UI
 
 ---
 
-## UC_1.3 — Gate 1: Waitlist
+### UC_1.3 — Gate 1: Waitlist
 
-### 1. OVERVIEW (Mô tả tổng quan)
+#### 1. OVERVIEW (Mô tả tổng quan)
 
 | Field | Content |
 | --- | --- |
@@ -282,24 +316,24 @@ Flow A: Global Default UI
 | **List Screen** | Waitlist Page (Marketing Header/Footer rendered) |
 | **Related UC** | UC_1.1 (trigger) |
 
-### 2. TRIGGER (Sự kiện kích hoạt)
+#### 2. TRIGGER (Sự kiện kích hoạt)
 
 `GET /system/status` returns `Global_Var_Allow_New_Signups == FALSE` (and the user is not geo-blocked).
 
-### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
+#### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
 
 User is on the checkout page; UC_1.1 completed with the flag FALSE.
 
-### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
+#### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
 
 - Direct API calls fired to **both** Klaviyo and ActiveCampaign with email + UTM.
 - Page shows the success state (`MSG-03`).
 
-### 5. ACTORS (Tác nhân tham gia)
+#### 5. ACTORS (Tác nhân tham gia)
 
 User · ActiveCampaign · Klaviyo
 
-### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
+#### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
 
 1. `/system/status` returns the flag FALSE.
 2. FE redirects (client-side, same tab) to the dedicated Waitlist page.
@@ -322,7 +356,7 @@ flowchart TD
     G -- No --> J[MSG-04 banner, button re-enabled, form kept] --> D
 ```
 
-### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
+#### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
 
 | ID | Condition | Behaviour |
 | --- | --- | --- |
@@ -331,7 +365,7 @@ flowchart TD
 | AF-3 | Retry after failure | Safe to resubmit — CRM-side dedupe absorbs a call that already succeeded on one of the two systems (`BR_1.3.3`). |
 | AF-4 | Flag is FALSE for the whole platform | Applies to ALL countries at once (`BR_1.3.1`). Blocked regions still see UC_1.4 first (UC_1.1 AF-3). |
 
-### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
+#### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
 
 | ID | Scenario | Handling | Message |
 | --- | --- | --- | --- |
@@ -339,9 +373,9 @@ flowchart TD
 | EX-2 | Primary Market empty / Email invalid on submit | Inline errors; no API call (`CR-01`, `CR-02`, `CR-03`). | — |
 | EX-3 | Client-side calls blocked (ad-blocker) or CRM key issues | Same as EX-1 from the user's view. See `Q-E05`. | `MSG-04` |
 
-### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
+#### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
 
-#### 9.1 Business Rules
+##### 9.1 Business Rules
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
@@ -349,7 +383,7 @@ flowchart TD
 | 2 | BR_1.3.2 | No Interrupt Logic | If the flag changes to FALSE mid-checkout (user started when TRUE), the user completes the ENTIRE flow uninterrupted. FE does not re-check after the initial load. |
 | 3 | BR_1.3.3 | CRM-Side Deduplication (No Info Leakage) | No custom backend dedup check exists. Klaviyo/ActiveCampaign resolve identity natively; an existing email is silently deduped/updated so nothing reveals whether an email is registered. Same intent as `CR-12`, applied to a 3rd-party CRM. |
 
-#### 9.2 Data Validation & Component Rules
+##### 9.2 Data Validation & Component Rules
 
 Waitlist UI
 ![Waitlist](assets/screenlist/CheckoutJoinwaitlist.png)
@@ -361,7 +395,7 @@ Waitlist UI
 | 3 | [Join Waitlist] | Button (Primary) | N/A | `CR-06`. Valid → "Processing..." → parallel Klaviyo + ActiveCampaign calls with email + UTM (`CR-05`). CRM fail → reverts to enabled + `MSG-04`. | All fields valid |
 | 4 | Success state | Popup | N/A | `MSG-03` (`POP-04`). Contains [Return to Homepage]. | N/A |
 
-#### 📝 BA NOTE — Sections to add on rework (10–14)
+##### 📝 BA NOTE — Sections to add on rework (10–14)
 
 - **§10 API Contracts:** Klaviyo / ActiveCampaign payloads, list IDs, how `Primary Market` maps to CRM fields.
 - **§13 Security/Privacy:** direct client-side CRM calls (key exposure, ad-blockers — `Q-E05`), consent for marketing emails per region.
@@ -369,9 +403,9 @@ Waitlist UI
 
 ---
 
-## UC_1.4 — Gate 2: Geoblock (Flow F)
+### UC_1.4 — Gate 2: Geoblock (Flow F)
 
-### 1. OVERVIEW (Mô tả tổng quan)
+#### 1. OVERVIEW (Mô tả tổng quan)
 
 | Field | Content |
 | --- | --- |
@@ -381,51 +415,51 @@ Waitlist UI
 | **List Screen** | Gate 2 — Geoblock (full-page, `FPS-01`) |
 | **Related UC** | UC_1.1 (Geo-IP Gate, activity flow), UC_1.2 (Flow F), UC_6.1 (separate billing-country pre-check) |
 
-### 2. TRIGGER (Sự kiện kích hoạt)
+#### 2. TRIGGER (Sự kiện kích hoạt)
 
 `GET /system/status` returns HTTP 403 (`geo_blocked == true`; `CF-IPCountry` / `CF-Region` matches `Compliance_geo_restrictions`).
 
-### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
+#### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
 
 None.
 
-### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
+#### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
 
 The entire checkout UI is replaced by the hard-stop block page (`FPS-01`). The user cannot proceed.
 
-### 5. ACTORS (Tác nhân tham gia)
+#### 5. ACTORS (Tác nhân tham gia)
 
 System · Cloudflare
 
-### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
+#### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
 
 1. `/system/status` returns HTTP 403.
 2. FE renders the full-page block (`FPS-01`, `MSG-05`) replacing the entire checkout UI — no header / nav / footer / step indicators / appeal link.
 
 Activity flow: see UC_1.1 §6 diagram, branch "3a Geo-IP Gate → Yes".
 
-### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
+#### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
 
 | ID | Condition | Behaviour |
 | --- | --- | --- |
 | AF-1 | User passes Gate 2 (IP allowed) but later selects a blocked Country/Region at Step 5 | Not handled here — Step 5 shows inline `MSG-10` via its own pre-check (`CR-09`, UC_6.1 EX-1/EX-2). Independent mechanisms. ⚠️ PND-25 |
 | AF-2 | User blocked while signups are also paused | Gate 2 wins over Waitlist (UC_1.1 AF-3). |
 
-### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
+#### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
 
 | ID | Scenario | Handling | Message |
 | --- | --- | --- | --- |
 | EX-1 | None — page is a dead end | No retry, no appeal link. Contact route is only the support email inside the message text. | `MSG-05` |
 
-### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
+#### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
 
-#### 9.1 Business Rules
+##### 9.1 Business Rules
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
 | 1 | BR_1.4.1 | Hard Stop — Full Page Replacement | HTTP 403 = absolute hard stop. The geoblock state replaces the ENTIRE checkout UI; only the block message is shown. |
 
-#### 9.2 Data Validation & Component Rules
+##### 9.2 Data Validation & Component Rules
 
 Flow F: Geo-Block
 ![Geoblock](assets/screenlist/CheckoutFlowF_Geoblock.png)
@@ -437,7 +471,7 @@ Flow F: Geo-Block
 
 ⚠️ PND-24: the source describes Gate 2 both as "HTTP 403" (this UC) and as a JSON response with `geo_blocked = true` (UC_1.1 activity flow); and as "sole content, no link" vs. a return-to-homepage button.
 
-#### 📝 BA NOTE — Sections to add on rework (10–14)
+##### 📝 BA NOTE — Sections to add on rework (10–14)
 
 - **§10 API Contracts:** 403 response body shape (PND-24).
 - **§11 Regional:** the sanctioned-country list and its owner (`Compliance_geo_restrictions`); OFAC/FATF review cycle.
@@ -446,9 +480,9 @@ Flow F: Geo-Block
 
 ---
 
-## UC_1.5 — Pricing Engine
+### UC_1.5 — Pricing Engine
 
-### 1. OVERVIEW (Mô tả tổng quan)
+#### 1. OVERVIEW (Mô tả tổng quan)
 
 | Field | Content |
 | --- | --- |
@@ -458,23 +492,23 @@ Flow F: Geo-Block
 | **List Screen** | Step 2 (Capital Allocation Selection) — no unique screen; output renders inside UC_3's pricing cards |
 | **Related UC** | UC_1.1 (data source), UC_3 (display), UC_6.1 (Pricing Engine at `/calculate-cart`), UC_8.1 EX-6 (`PRICE_CHANGED`) |
 
-### 2. TRIGGER (Sự kiện kích hoạt)
+#### 2. TRIGGER (Sự kiện kích hoạt)
 
 Step 2 renders.
 
-### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
+#### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
 
 `is_founder_cohort` and `pricing_tiers` are available in global checkout state (from Step 0, step 3e).
 
-### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
+#### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
 
 Correct pricing (Founder or Standard) is displayed on all 3 cards, formatted per `CR-04`.
 
-### 5. ACTORS (Tác nhân tham gia)
+#### 5. ACTORS (Tác nhân tham gia)
 
 System
 
-### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
+#### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
 
 1. FE reads `is_founder_cohort` from state.
 2. TRUE → render Founder Price with the Standard price struck through.
@@ -482,7 +516,7 @@ System
 
 Governed entirely by state read at Step 0; no API call at Step 2.
 
-### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
+#### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
 
 | ID | Condition | Behaviour |
 | --- | --- | --- |
@@ -490,16 +524,16 @@ Governed entirely by state read at Step 0; no API call at Step 2.
 | AF-2 | Founder cohort sells out **between Step 2 view and Step 5 `[Next]`** | `/calculate-cart` silently returns the Standard-based totals; nothing is shown at Step 5 (`BR_6.1.5`) — the change is first visible at Step 6 Order Summary. ⚠️ PND-29 |
 | AF-3 | Founder cohort sells out, or tax rate changes, **between `/calculate-cart` and `/execute-checkout`** | Backend returns `PRICE_CHANGED` → see EX-1. |
 
-### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
+#### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
 
 | ID | Scenario | Handling | Message |
 | --- | --- | --- | --- |
 | EX-1 | Race condition — stale pricing (`PRICE_CHANGED` at `/execute-checkout`) | No charge, no promo reservation. Popup `POP-02`; [Refresh now] closes the overlay and refreshes the Order Summary — no full page reload (`BR_1.5.2`). Detailed in `UC_8.1 §8 EX-6`. | `MSG-06` |
 | EX-2 | `pricing_tiers` missing / incomplete for a tier | Not defined. See `Q-E08`. | — |
 
-### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
+#### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
 
-#### 9.1 Business Rules
+##### 9.1 Business Rules
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
@@ -507,11 +541,11 @@ Governed entirely by state read at Step 0; no API call at Step 2.
 | 2 | BR_1.5.2 | Race Condition — Stale Pricing | Triggered at the Step 6 pay click when the server-side re-check detects Founder cohort sold out (reverts to Standard) OR a changed tax rate since `/calculate-cart`. Returns `PRICE_CHANGED` — no charge, no promo reservation. `MSG-06` shown; [Refresh now] closes overlay + refreshes Order Summary, no full reload. |
 | 3 | BR_1.5.3 | Price Data Source | Founder/Standard prices for all 3 tiers live in Zapier Table J. Backend packs them into `pricing_tiers` at step 3e of `/system/status`. No additional API call at Step 2. |
 
-#### 9.2 Data Validation & Component Rules
+##### 9.2 Data Validation & Component Rules
 
 N/A — no unique screen component (see UC_3 §9.2).
 
-#### 9.3 Reference Data — Table J snapshot
+##### 9.3 Reference Data — Table J snapshot
 
 *Ops-editable; source of truth = Zapier, not this document. All values follow `CR-04`.*
 
@@ -521,7 +555,7 @@ N/A — no unique screen component (see UC_3 §9.2).
 | Accelerated (L2) | $1,250 | $725 | $625 | $275 | $1,049 | $600 |
 | Advanced (L5) | **$7,000** | $3,800 | $3,500 | $1,500 | **$5,599** | $3,250 |
 
-#### 📝 BA NOTE — Sections to add on rework (10–14)
+##### 📝 BA NOTE — Sections to add on rework (10–14)
 
 - **§10 API Contracts:** `pricing_tiers` schema; `PRICE_CHANGED` error body.
 - **§12 State Machine:** Founder cohort — Open → Sold-out; how many seats remain and whether a seat is held during checkout (not stated).
@@ -529,11 +563,11 @@ N/A — no unique screen component (see UC_3 §9.2).
 
 ---
 
-# STEP 1 — ASSET CLASS SELECTION
+## STEP 1 — ASSET CLASS SELECTION
 
-## UC_2 — Asset Class Selection
+### UC_2 — Asset Class Selection
 
-### 1. OVERVIEW (Mô tả tổng quan)
+#### 1. OVERVIEW (Mô tả tổng quan)
 
 | Field | Content |
 | --- | --- |
@@ -543,30 +577,30 @@ N/A — no unique screen component (see UC_3 §9.2).
 | **List Screen** | Step 1 (Asset Class Selection) |
 | **Related UC** | UC_1.1 (gates), UC_3 (next), UC_4 (platform depends on asset class), UC_5 (Futures only) |
 
-### 2. TRIGGER (Sự kiện kích hoạt)
+#### 2. TRIGGER (Sự kiện kích hoạt)
 
 User passes Gate 1 and Gate 2 at Step 0.
 
-### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
+#### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
 
 - `Global_Var_Allow_New_Signups == TRUE`; `geo_blocked == FALSE`.
 - `/system/status` response stored in state.
 
-### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
+#### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
 
 `asset_class` stored in session state; progress bar reflects 7 (Futures) or 6 (Forex) steps; user proceeds to Step 2.
 
-### 5. ACTORS (Tác nhân tham gia)
+#### 5. ACTORS (Tác nhân tham gia)
 
 User
 
-### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
+#### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
 
 1. Step 1 renders 2 cards: Futures, Forex. None selected.
 2. User clicks one card → `asset_class` stored; progress bar set (Futures 7 / Forex 6).
 3. User clicks [Next] → Step 2 (UC_3). Persistence: `CR-07`.
 
-### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
+#### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
 
 | ID | Condition | Behaviour |
 | --- | --- | --- |
@@ -576,16 +610,16 @@ User
 | AF-4 | Page refresh on Step 1 | Behaviour conflicts across the spec. ⚠️ PND-23 |
 | AF-5 | User re-clicks the already-selected card | Selection unchanged; no reset (radio behaviour). |
 
-### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
+#### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
 
 | ID | Scenario | Handling | Message |
 | --- | --- | --- | --- |
 | EX-1 | None — options are hardcoded in FE, always displayed | N/A | — |
 | EX-2 | Deep-link to a later step / browser Back button | Not defined. See `Q-E07`. | — |
 
-### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
+#### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
 
-#### 9.1 Business Rules
+##### 9.1 Business Rules
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
@@ -593,7 +627,7 @@ User
 | 2 | BR_2.2 | Session Persistence | Ref `CR-07`. Selection is kept in session state for the duration of checkout. The source also says "refresh does NOT return user to Step 1 if local storage cart state is present" — conflicts with `CR-07` ("lost on refresh") → ⚠️ PND-23. |
 | 3 | BR_2.3 | Asset Class Change — Progress Bar & Step Count Impact | **Futures:** 7 steps (1→2→3→4→5→6→7). **Forex:** 6 steps (1→2→3→5→6→7, Step 4 omitted). Applies on initial selection AND on back-navigation. Futures→Forex: Step 3 reset, Step 4 removed, bar → 6. Forex→Futures: Step 3 reset, Step 4 added back, bar → 7. **Step 3 reset is the deliberate exception to `CR-07`; Step 5 data is NOT reset** (consistent with `CR-07`) — cleared only on full page refresh. |
 
-#### 9.2 Data Validation & Component Rules
+##### 9.2 Data Validation & Component Rules
 
 Step 1: Asset Class Selection
 ![Step1](assets/screenlist/CheckoutFlow_Step1.png)
@@ -604,18 +638,18 @@ Step 1: Asset Class Selection
 | 2 | Forex | Radio Group | Yes | Title *"Forex"*, subtitle *"Currency pairs"*. Default unselected. Click → `asset_class = 'FOREX'`, deselects Futures. If switching FROM Futures: Step 3 resets, Step 4 removed, bar → 6. | N/A |
 | 3 | [Next] | Button (Primary) | N/A | Client-side navigation only (no API call, so `CR-06` does not apply). Disabled until one asset class is selected; then → Step 2. | One card selected |
 
-#### 📝 BA NOTE — Sections to add on rework (10–14)
+##### 📝 BA NOTE — Sections to add on rework (10–14)
 
 - **§12 State Machine:** session-state map — which keys each step owns and which are reset by which upstream change (asset class, package, platform).
 - **§14 UI/UX:** progress-bar update animation when step count changes 7 ↔ 6; card focus/keyboard behaviour.
 
 ---
 
-# STEP 2 — CAPITAL ALLOCATION SELECTION
+## STEP 2 — CAPITAL ALLOCATION SELECTION
 
-## UC_3 — Capital Allocation Selection
+### UC_3 — Capital Allocation Selection
 
-### 1. OVERVIEW (Mô tả tổng quan)
+#### 1. OVERVIEW (Mô tả tổng quan)
 
 | Field | Content |
 | --- | --- |
@@ -625,24 +659,24 @@ Step 1: Asset Class Selection
 | **List Screen** | Step 2 (Capital Allocation Selection) |
 | **Related UC** | UC_1.5 (pricing), UC_2 (previous), UC_4 (next), UC_7.5 (promo is bound to `product_id`) |
 
-### 2. TRIGGER (Sự kiện kích hoạt)
+#### 2. TRIGGER (Sự kiện kích hoạt)
 
 User clicks [Next] at Step 1 with an asset class selected.
 
-### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
+#### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
 
 - `asset_class` in session state.
 - `/system/status` pricing data (`pricing_tiers`, `is_founder_cohort`) in global checkout state.
 
-### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
+#### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
 
 `product_id` (`EVAL_L1` / `EVAL_L2` / `EVAL_L5`) stored in session state; user proceeds to Step 3.
 
-### 5. ACTORS (Tác nhân tham gia)
+#### 5. ACTORS (Tác nhân tham gia)
 
 User
 
-### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
+#### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
 
 1. Step 2 renders 3 pricing cards left-to-right: Advanced, Accelerated, Associate. No card is pre-selected.
 2. Prices render per UC_1.5 (Standard, or Founder with strikethrough Standard).
@@ -651,7 +685,7 @@ User
 
 > `Daily Loss Limit` (`Daily_Loss_Ratio × max_drawdown`) is a backend/ops metric — **not displayed** at Step 2. `Daily_Loss_Ratio` is read from Table C at runtime but never surfaced here.
 
-### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
+#### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
 
 | ID | Condition | Behaviour |
 | --- | --- | --- |
@@ -661,23 +695,23 @@ User
 | AF-4 | User comes back and picks a different card | `product_id` is replaced. Effect on an already-applied promo code: ⚠️ PND-30 (promo is 1-to-1 with `product_id`, `BR_7.5.7`). |
 | AF-5 | Hover on Live Stop Loss ⓘ | Tooltip explains firm-absorbed risk (see §9.2 row 3). Touch-device equivalent: `Q-E09`. |
 
-### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
+#### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
 
 | ID | Scenario | Handling | Message |
 | --- | --- | --- | --- |
 | EX-1 | None defined — no API call at this step | N/A | — |
 | EX-2 | `pricing_tiers` missing a tier / price null | Not defined. See `Q-E08`. | — |
 
-### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
+#### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
 
-#### 9.1 Business Rules
+##### 9.1 Business Rules
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
 | 1 | BR_3.1 | Pricing Mode — Standard vs Founder | `is_founder_cohort = TRUE` → strikethrough Standard + full-size Founder, no "one-time" label. `FALSE` → Standard + "one-time" label. Format: `CR-04`. |
 | 2 | BR_3.2 | Card Selection | Only one card selectable at a time; a new selection deselects the previous. [Next] disabled until a card is selected. |
 
-#### 9.2 Data Validation & Component Rules
+##### 9.2 Data Validation & Component Rules
 
 Step 2: Capital Allocation
 ![Step2](assets/screenlist/CheckoutFlow_Step2.png)
@@ -691,7 +725,7 @@ Step 2: Capital Allocation
 | 5 | [Back] | Button (Secondary) | N/A | → Step 1. Data kept (`CR-07`). | N/A |
 | 6 | [Next] | Button (Primary) | N/A | Client-side navigation only (`CR-06` not applicable — no API call). Disabled until a card is selected; then → Step 3. | Card selected |
 
-#### 9.3 Reference Data — Evaluation Package
+##### 9.3 Reference Data — Evaluation Package
 
 *All monetary values follow `CR-04`.*
 
@@ -708,18 +742,18 @@ Step 2: Capital Allocation
 | Live Stop Loss | $10,500 | $2,500 | $1,250 |
 | Live Profit Target | $14,100 | $3,750 | $1,875 |
 
-#### 📝 BA NOTE — Sections to add on rework (10–14)
+##### 📝 BA NOTE — Sections to add on rework (10–14)
 
 - **§10 API Contracts:** Table C fields consumed by Step 2 (`target`, `stop`, `Daily_Loss_Ratio`) — how they reach FE (inside `/system/status`, step 3e).
 - **§14 UI/UX:** card selection states, ribbon styling, tooltip behaviour on touch devices (`Q-E09`), price block with/without Founder mode.
 
 ---
 
-# STEP 3 — PLATFORM SELECTION
+## STEP 3 — PLATFORM SELECTION
 
-## UC_4 — Platform Selection
+### UC_4 — Platform Selection
 
-### 1. OVERVIEW (Mô tả tổng quan)
+#### 1. OVERVIEW (Mô tả tổng quan)
 
 | Field | Content |
 | --- | --- |
@@ -729,23 +763,23 @@ Step 2: Capital Allocation
 | **List Screen** | Step 3 (Platform Selection) |
 | **Related UC** | UC_2 (asset class), UC_5 (next for Futures), UC_6.1 (next for Forex) |
 
-### 2. TRIGGER (Sự kiện kích hoạt)
+#### 2. TRIGGER (Sự kiện kích hoạt)
 
 User clicks [Next] at Step 2 with a package selected.
 
-### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
+#### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
 
 `asset_class` and `product_id` in session state.
 
-### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
+#### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
 
 `platform` stored in session state; user proceeds to Step 4 (Futures) or Step 5 (Forex).
 
-### 5. ACTORS (Tác nhân tham gia)
+#### 5. ACTORS (Tác nhân tham gia)
 
 User · System (FE + BE)
 
-### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
+#### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
 
 1. Step 3 renders.
 2. FE calls `GET /public/platform-options?asset_class=[asset_class]`.
@@ -764,7 +798,7 @@ flowchart TD
     F --> H([Step 4 if FUTURES, Step 5 if FOREX])
 ```
 
-### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
+#### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
 
 | ID | Condition | Behaviour |
 | --- | --- | --- |
@@ -773,7 +807,7 @@ flowchart TD
 | AF-3 | User returns via [Back] from Step 4/5 and changes platform | Step 4 (Market Data) and Step 5 data are **not** reset — independent (`BR_4.3`). |
 | AF-4 | User clicks [Back] | Returns to Step 2; data kept (`CR-07`). |
 
-### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
+#### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
 
 | ID | Scenario | Handling | Message |
 | --- | --- | --- | --- |
@@ -781,9 +815,9 @@ flowchart TD
 | EX-2 | HTTP 500 / network timeout | Full-page error `FPS-02`. | `MSG-08` |
 | EX-3 | Selected platform becomes inactive between listing and payment | Not defined. See `Q-E11`. | — |
 
-### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
+#### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
 
-#### 9.1 Business Rules
+##### 9.1 Business Rules
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
@@ -791,7 +825,7 @@ flowchart TD
 | 2 | BR_4.2 | Pre-selection with 1 Result | 1 platform returned → auto pre-select. User must still click [Next]. |
 | 3 | BR_4.3 | Navigation — Back from Later Steps | Ref `CR-07`. Changing platform via back-navigation from Step 5 does NOT reset Step 4 or Step 5 data. |
 
-#### 9.2 Data Validation & Component Rules
+##### 9.2 Data Validation & Component Rules
 
 Platform Selection
 ![Step3](assets/screenlist/CheckoutFlow_Step3_Platform.png)
@@ -802,7 +836,7 @@ Platform Selection
 | 2 | [Back] | Button (Secondary) | N/A | → Step 2. Data kept (`CR-07`). | N/A |
 | 3 | [Next] | Button (Primary) | N/A | Client-side navigation only (`CR-06` not applicable — the API call happens on step entry, not on click). Disabled until a tile is selected; then → Step 4 (Futures) or Step 5 (Forex). | Tile selected |
 
-#### 9.3 Reference Data — Platform Registry (Zapier Table I, snapshot)
+##### 9.3 Reference Data — Platform Registry (Zapier Table I, snapshot)
 
 | Platform Name | Asset Class | Gateway | Is_Active | Risk_Group_Template |
 | --- | --- | --- | --- | --- |
@@ -814,7 +848,7 @@ Platform Selection
 | MetaTrader 5 | Forex | MT5 | TRUE | Sim_MT5_Default |
 | TradingView | Forex | TraderEvolution | TRUE | Sim_TV_Default |
 
-#### 📝 BA NOTE — Sections to add on rework (10–14)
+##### 📝 BA NOTE — Sections to add on rework (10–14)
 
 - **§10 API Contracts:** `GET /public/platform-options` response/error bodies; whether `Is_Active = FALSE` rows are filtered server-side.
 - **§12 State Machine:** Step 3 states — Loading → Empty / Error / Ready(0 selected | 1 pre-selected | n options).
@@ -822,11 +856,11 @@ Platform Selection
 
 ---
 
-# STEP 4 — MARKET DATA SELECTION (FUTURES ONLY)
+## STEP 4 — MARKET DATA SELECTION (FUTURES ONLY)
 
-## UC_5 — Market Data Selection
+### UC_5 — Market Data Selection
 
-### 1. OVERVIEW (Mô tả tổng quan)
+#### 1. OVERVIEW (Mô tả tổng quan)
 
 | Field | Content |
 | --- | --- |
@@ -836,23 +870,23 @@ Platform Selection
 | **List Screen** | Step 4 (Market Data Selection) — Forex users skip this step entirely |
 | **Related UC** | UC_4 (previous), UC_6.1 (next; `addon_ids[]` feed `/calculate-cart`), UC_2 (step count) |
 
-### 2. TRIGGER (Sự kiện kích hoạt)
+#### 2. TRIGGER (Sự kiện kích hoạt)
 
 User clicks [Next] at Step 3 **and** `asset_class == 'FUTURES'`.
 
-### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
+#### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
 
 `asset_class == 'FUTURES'`.
 
-### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
+#### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
 
 `addon_ids[]` (always containing CME) stored in session state; user proceeds to Step 5.
 
-### 5. ACTORS (Tác nhân tham gia)
+#### 5. ACTORS (Tác nhân tham gia)
 
 User · System (FE + BE)
 
-### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
+#### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
 
 1. Step 4 renders.
 2. FE calls `GET /public/market-data-products` (backend reads product list + prices from Table C — never hardcoded, `BR_5.5`).
@@ -863,7 +897,7 @@ User · System (FE + BE)
 
 Flow: Step 4 renders → API call → 0 products → `FPS-02` (`MSG-09`) · otherwise grid → toggle → [Next] → Step 5.
 
-### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
+#### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
 
 | ID | Condition | Behaviour |
 | --- | --- | --- |
@@ -873,7 +907,7 @@ Flow: Step 4 renders → API call → 0 products → `FPS-02` (`MSG-09`) · othe
 | AF-4 | User clicks [Back] | Returns to Step 3. |
 | AF-5 | Authenticated Dashboard variant | `GET /market-data-products` additionally filters out already-owned feeds (`BR_5.5`). Out of checkout scope. |
 
-### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
+#### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
 
 | ID | Scenario | Handling | Message |
 | --- | --- | --- | --- |
@@ -881,9 +915,9 @@ Flow: Step 4 renders → API call → 0 products → `FPS-02` (`MSG-09`) · othe
 | EX-2 | Non-empty response but CME missing, or CME cost ≠ $0.00 | Not defined. See `Q-E12`. | — |
 | EX-3 | HTTP 5xx / timeout on `/public/market-data-products` | Not defined separately in the source; presumably same as EX-1. See `Q-E12`. | — |
 
-### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
+#### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
 
-#### 9.1 Business Rules
+##### 9.1 Business Rules
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
@@ -893,7 +927,7 @@ Flow: Step 4 renders → API call → 0 products → `FPS-02` (`MSG-09`) · othe
 | 4 | BR_5.4 | Navigation — Back from Later Steps | Ref `CR-07`. Selected `addon_ids[]` states preserved on return — not reset to default. |
 | 5 | BR_5.5 | Product & Price Source — Table C (No Hardcoding) | `GET /public/market-data-products` MUST read the product list + prices from Zapier Table C at request time; backend must NOT hardcode. Also applies to the authenticated Dashboard variant (`GET /market-data-products`), which additionally filters out owned feeds. |
 
-#### 9.2 Data Validation & Component Rules
+##### 9.2 Data Validation & Component Rules
 
 Market Data
 ![Step4](assets/screenlist/CheckoutFlow_Step4_MarketData.png)
@@ -906,7 +940,7 @@ Market Data
 | 4 | [Back] | Button (Secondary) | N/A | → Step 3. | N/A |
 | 5 | [Next] | Button (Primary) | N/A | Client-side navigation only (`CR-06` not applicable). Always enabled (CME always selected). Stores final `addon_ids[]` → Step 5. | N/A |
 
-#### 📝 BA NOTE — Sections to add on rework (10–14)
+##### 📝 BA NOTE — Sections to add on rework (10–14)
 
 - **§10 API Contracts:** `GET /public/market-data-products` schema (id, label, price, exchange); how `addon_ids` map to Table C rows.
 - **§11 Regional:** exchange-data entitlement rules for returning users on Rithmic (PND-02).
@@ -914,11 +948,11 @@ Market Data
 
 ---
 
-# STEP 5 — PII CAPTURE, COMPLIANCE & CART ABANDONMENT
+## STEP 5 — PII CAPTURE, COMPLIANCE & CART ABANDONMENT
 
-## UC_6.1 — PII Capture & Compliance
+### UC_6.1 — PII Capture & Compliance
 
-### 1. OVERVIEW (Mô tả tổng quan)
+#### 1. OVERVIEW (Mô tả tổng quan)
 
 | Field | Content |
 | --- | --- |
@@ -928,26 +962,26 @@ Market Data
 | **List Screen** | Step 5 (PII Capture & Compliance) — 7 flow-specific wireframe variants |
 | **Related UC** | UC_1.2 (compliance variants Flow A–G), UC_6.2 (lead capture) |
 
-### 2. TRIGGER (Sự kiện kích hoạt)
+#### 2. TRIGGER (Sự kiện kích hoạt)
 
 User clicks [Next] at Step 4 (Futures) or Step 3 (Forex).
 
-### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
+#### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
 
 - Session state contains `asset_class`, `product_id`, `platform`, `addon_ids[]` (empty array `[]` on the Forex path).
 - `required_flow` is available in global checkout state (from Step 0).
 
-### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
+#### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
 
 - All PII fields valid; no unresolved sanctions match; all required checkboxes checked.
 - `POST /calculate-cart` returned HTTP 200 (Sanctions Gate passed); `base_price / discount_amount / tax_amount / total_price` saved silently in session state.
 - UC_6.2 Phase 2 (full PII UPSERT) has been triggered. User proceeds to Step 6.
 
-### 5. ACTORS (Tác nhân tham gia)
+#### 5. ACTORS (Tác nhân tham gia)
 
 User · System (FE + BE) · Quaderno (tax) · Google Places / Address Validation API · Everflow (affiliate tracking, see PND-16)
 
-### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
+#### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
 
 1. Step 5 renders all PII fields. Flow-dependent compliance UI (UC_1.2) renders at the same time.
 2. FE reads the current UTM values per `CR-05` (from `localStorage`, not re-parsed from the URL).
@@ -976,7 +1010,7 @@ flowchart TD
     F -- 200 --> G[Save totals silently, UC_6.2 Phase 2, go to Step 6]
 ```
 
-### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
+#### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
 
 | ID | Condition | Behaviour |
 | --- | --- | --- |
@@ -990,7 +1024,7 @@ flowchart TD
 | AF-8 | Founder cohort sold out between the Step 2 view and this [Next] | `/calculate-cart` prices with the new (Standard) amount; nothing is displayed at Step 5 (`BR_6.1.5`), so the user first sees it at Step 6. ⚠️ PND-29 |
 | AF-9 | User returns to Step 5 from Step 6 (or changes package at Step 2) and clicks [Next] again | `/calculate-cart` re-fires with `promo_code = NULL`; UC_6.2 Phase 2 UPSERT runs again. What happens to a promo already applied at Step 6: ⚠️ PND-30. |
 
-### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
+#### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
 
 | ID | Scenario | Handling | Message |
 | --- | --- | --- | --- |
@@ -1004,9 +1038,9 @@ flowchart TD
 | EX-8 | `/calculate-cart` times out or the device is offline (no HTTP status) | Not defined — only 5xx is covered (EX-5); [Next] and `MSG-29` could stay stuck. See `Q-E17`. | — |
 | EX-9 | Google Places unavailable, or Region → City list fetch fails | Not defined (AF-3 only covers "no city data"). See `Q-E13`. | — |
 
-### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
+#### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
 
-#### 9.1 Business Rules
+##### 9.1 Business Rules
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
@@ -1024,7 +1058,7 @@ flowchart TD
 | 12 | BR_6.1.12 | Address Validation Gate (US/CA only) | Rate-limited 15 req/min per user/session + 24h success cache per normalized State+City+ZIP. Mismatch on `administrative_area_level_1` / `locality` / `postal_code` → HTTP 400 (`MSG-11`), dropped before Tax Engine. All other countries bypass. |
 | 13 | BR_6.1.13 | Address Validation API Error Cases | Full list of error cases QC must test is not yet defined. ⚠️ PND-03 |
 
-#### 9.2 Data Validation & Component Rules
+##### 9.2 Data Validation & Component Rules
 
 ![Step5](assets/screenlist/CheckoutFlow_Step5_traderdetails.png)
 
@@ -1044,7 +1078,7 @@ flowchart TD
 | 12 | [Back] | Button (Secondary) | N/A | Back to Step 4 / Step 3. Data kept (`CR-07`). | N/A |
 | 13 | [Next] | Button (Primary) | N/A | `CR-06`. Fires `/calculate-cart`; disabled during the call; navigates on HTTP 200 only. | See `BR_6.1.2` |
 
-#### 📝 BA NOTE — Sections to add on rework (10–14)
+##### 📝 BA NOTE — Sections to add on rework (10–14)
 
 - **§10 API Contracts:** request/response schema + error body for `POST /calculate-cart` (403/400/5xx), `POST /capture-lead`, Places/Address Validation call. The source spec uses fields not in the RFQ Prop Tech contract (`billing_city`, `zip_code`, `zip_requirements` in `/system/status`, Address Validation step) → PND-21.
 - **§11 Regional Compliance Matrix:** one matrix Country/Region → Flow → disclosures → checkbox count → language → blocked. UC_1.2 currently lacks Flow H/I/J and lists Belgium/Bulgaria as both blocked and Flow C → PND-22.
@@ -1054,9 +1088,9 @@ flowchart TD
 
 ---
 
-## UC_6.2 — Lead Capture & Cart Abandonment
+### UC_6.2 — Lead Capture & Cart Abandonment
 
-### 1. OVERVIEW (Mô tả tổng quan)
+#### 1. OVERVIEW (Mô tả tổng quan)
 
 | Field | Content |
 | --- | --- |
@@ -1065,26 +1099,26 @@ flowchart TD
 | **Description** | This use case allows the System to capture a partial lead the moment the user finishes typing their email, in order to enable cart-abandonment remarketing even if the user never completes checkout. |
 | **List Screen** | N/A (silent background call within Step 5) |
 
-### 2. TRIGGER (Sự kiện kích hoạt)
+#### 2. TRIGGER (Sự kiện kích hoạt)
 
 - **Phase 1:** Email field `onBlur`.
 - **Phase 2:** [Next] click succeeds at Step 5 (`/calculate-cart` HTTP 200).
 
-### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
+#### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
 
 User is on Step 5.
 
-### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
+#### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
 
 - Phase 1: Guest record created/updated and `Cart_Abandonment` webhook fired.
 - Phase 2: full PII UPSERTed into the **same** record.
 - No Auth0 account exists at either phase.
 
-### 5. ACTORS (Tác nhân tham gia)
+#### 5. ACTORS (Tác nhân tham gia)
 
 System (FE + BE).
 
-### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
+#### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
 
 **Phase 1 — Capture**
 1. User finishes typing Email; field loses focus (`onBlur`).
@@ -1096,7 +1130,7 @@ System (FE + BE).
 2. FE UPSERTs the full PII into the same Guest record.
 3. FE navigates to Step 6.
 
-### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
+#### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
 
 | ID | Condition | Behaviour |
 | --- | --- | --- |
@@ -1104,23 +1138,23 @@ System (FE + BE).
 | AF-2 | User clicks the payment CTA at Step 6 (UC_7.2 – UC_7.4) | FE fires `POST /capture-lead` again (fire-and-forget) to update `abandoned_step`. It never blocks payment (`BR_7.2.2`). |
 | AF-3 | User corrects / changes the email after Phase 1 already fired for the first value | Not defined — an orphan record and a `Cart_Abandonment` webhook for the first (possibly mistyped) address may exist. See `Q-E14`. |
 
-### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
+#### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
 
 | ID | Scenario | Handling | Message |
 | --- | --- | --- | --- |
 | EX-1 | `POST /capture-lead` fails | No user-facing state is defined for this fire-and-forget call. ⚠️ PND-04 | — |
 | EX-2 | Phase 2 UPSERT fails | Not defined in the source spec. ⚠️ PND-04 | — |
 
-### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
+#### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
 
-#### 9.1 Business Rules
+##### 9.1 Business Rules
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
 | 1 | BR_6.2.1 | Two-Phase Capture | Phase 1 (`onBlur`) captures minimal data early to survive drop-off; Phase 2 (Next success) enriches the same record — never creates a duplicate. |
 | 2 | BR_6.2.2 | No Auth0 Account at Either Phase | A Guest record is a DB row only. No authentication account exists until Step 7 provisioning completes. |
 
-#### 9.2 Data Validation & Component Rules
+##### 9.2 Data Validation & Component Rules
 
 No screen component of its own. Payload validation:
 
@@ -1131,7 +1165,7 @@ No screen component of its own. Payload validation:
 | `utm_*` | No | Read once and persisted per `CR-05`. |
 | `abandoned_step` | Yes | String; updated on each call. |
 
-#### 📝 BA NOTE — Sections to add on rework (10–14)
+##### 📝 BA NOTE — Sections to add on rework (10–14)
 
 - **§10 API Contracts:** `POST /capture-lead` schema, idempotency (same email fired multiple times), response codes, and the downstream `Cart_Abandonment` webhook payload (Zapier → Klaviyo per Zapier V7; not written in the source spec).
 - **§12 State Machine:** Guest record lifecycle — Pending Order (Phase 1) → Guest with PII (Phase 2) → converted (after payment).
@@ -1139,11 +1173,11 @@ No screen component of its own. Payload validation:
 
 ---
 
-# STEP 6 — CHECKOUT & PAYMENT
+## STEP 6 — CHECKOUT & PAYMENT
 
-## UC_7.1 — Order Summary
+### UC_7.1 — Order Summary
 
-### 1. OVERVIEW (Mô tả tổng quan)
+#### 1. OVERVIEW (Mô tả tổng quan)
 
 | Field | Content |
 | --- | --- |
@@ -1153,25 +1187,25 @@ No screen component of its own. Payload validation:
 | **List Screen** | Step 6 (Secure Checkout) |
 | **Related UC** | UC_7.2, UC_7.3, UC_7.4 (payment methods), UC_7.5 (promo), UC_8.1 (execution) |
 
-### 2. TRIGGER (Sự kiện kích hoạt)
+#### 2. TRIGGER (Sự kiện kích hoạt)
 
 User navigates to Step 6 after Step 5.
 
-### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
+#### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
 
 - `/calculate-cart` succeeded at Step 5 (`total / tax / base_price` in state).
 - `methods[]` loaded from Step 0.
 - User passed the Step 5 compliance gate.
 
-### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
+#### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
 
 Step 6 renders fully. The first method in `methods[]` is pre-selected and its execution environment is rendered.
 
-### 5. ACTORS (Tác nhân tham gia)
+#### 5. ACTORS (Tác nhân tham gia)
 
 User · System
 
-### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
+#### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
 
 1. On mount, Step 6 renders the split-panel layout with headline "Secure Checkout".
 2. System reads `methods[]` from session state (populated at Step 0). Each method renders as radio + label + explanatory text + inline icons + CTA.
@@ -1180,7 +1214,7 @@ User · System
 5. FE applies client-side OS/browser detection for Apple Pay / Google Pay visibility.
 6. User clicks the CTA → Group A (CC, UC_7.2) or Group B (Apple Pay / Google Pay, UC_7.3 / UC_7.4) → UC_8.1 Payment Execution.
 
-### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
+#### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
 
 | ID | Condition | Behaviour |
 | --- | --- | --- |
@@ -1193,16 +1227,16 @@ User · System
 | AF-7 | User clicks "Have a promo code?" | Promo panel expands (UC_7.5). |
 | AF-8 | User clicks [Back] | Returns to Step 5; data kept (`CR-07`). An applied promo code is affected when the user then clicks [Next] again. ⚠️ PND-30 |
 
-### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
+#### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
 
 | ID | Scenario | Handling | Message |
 | --- | --- | --- | --- |
 | EX-1 | `methods[]` is empty | Blocking popup `POP-03`; user cannot proceed. | `MSG-13` |
 | EX-2 | Email under 5-failure lock | Blocking modal with 15-min countdown; all inputs disabled underneath. | `MSG-14` (`MDL-04`) |
 
-### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
+#### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
 
-#### 9.1 Business Rules
+##### 9.1 Business Rules
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
@@ -1211,7 +1245,7 @@ User · System
 | 3 | BR_7.1.3 | Apple Pay / Google Pay — Client-Side Detection | Included in `methods[]` globally; FE renders them only if the client environment supports them. |
 | 4 | BR_7.1.4 | Background Listening on Modal Close | Ref `CR-13`. |
 
-#### 9.2 Data Validation & Component Rules
+##### 9.2 Data Validation & Component Rules
 
 ![Step6](assets/screenlist/CheckoutFlow_Step6_AddressCheckbox.png)
 
@@ -1226,7 +1260,7 @@ User · System
 | 7 | Trust Anchors | Static Display | N/A | 256-bit SSL icon, PCI-DSS badge, payment logos. No interaction. |
 | 8 | [Back] | Button (Secondary) | N/A | Back to Step 5. |
 
-#### 📝 BA NOTE — Sections to add on rework (10–14)
+##### 📝 BA NOTE — Sections to add on rework (10–14)
 
 - **§10 API Contracts:** schema of `methods[]` (`id, label, explanatory_text, cta_text, icon_tags[]`) and the `icon_tags` → SVG mapping table.
 - **§11 Regional Compliance:** payment-method matrix per country (from `Payment_Method_Config`) incl. exclusions (India) — RFQ says only CC is stripped, the source spec says CC + wallets → PND-18.
@@ -1236,9 +1270,9 @@ User · System
 
 ---
 
-## UC_7.2 — Credit Card (NMI Collect.js)
+### UC_7.2 — Credit Card (NMI Collect.js)
 
-### 1. OVERVIEW (Mô tả tổng quan)
+#### 1. OVERVIEW (Mô tả tổng quan)
 
 | Field | Content |
 | --- | --- |
@@ -1247,56 +1281,56 @@ User · System
 | **Description** | This use case allows the User to pay via Credit/Debit Card using NMI-hosted PCI-compliant iframes, in order to complete the evaluation purchase without Stack Trading ever handling raw card data. |
 | **List Screen** | Step 6 — Credit Card DOM state |
 
-### 2. TRIGGER (Sự kiện kích hoạt)
+#### 2. TRIGGER (Sự kiện kích hoạt)
 
 User clicks the CTA button after filling the CC form.
 
-### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
+#### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
 
 - `CC` method selected.
 - NMI Collect.js hosted fields injected successfully.
 - Name, Card Number, Expiration, CVC filled.
 
-### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
+#### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
 
 - Success (HTTP 200) → automatically transitions to UC_8.1.
 - Declined → failure banner with the raw NMI decline reason (`CR-11`).
 
-### 5. ACTORS (Tác nhân tham gia)
+#### 5. ACTORS (Tác nhân tham gia)
 
 User · NMI
 
-### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
+#### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
 
 1. User clicks the CTA.
 2. FE fires `POST /capture-lead` (fire-and-forget) to update `abandoned_step`.
 3. NMI Collect.js tokenizes the card data → `payment_token`.
 4. Process transitions to UC_8.1 for payload assembly and execution.
 
-### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
+#### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
 
 | ID | Condition | Behaviour |
 | --- | --- | --- |
 | AF-1 | `POST /capture-lead` fails or is slow | Payment continues regardless (`BR_7.2.2`). |
 | AF-2 | Issuer requires 3-D Secure / SCA authentication | Not defined in the source spec. See `Q-E21`. |
 
-### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
+#### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
 
 | ID | Scenario | Handling | Message |
 | --- | --- | --- | --- |
 | EX-1 | Card declined | See `UC_8.1 §8 EX-1` — raw gateway text, no dedicated code (`CR-11`). | — |
 | EX-2 | Tokenization fails / hosted fields fail to load | Not defined in the source spec (see BA NOTE). | — |
 
-### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
+#### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
 
-#### 9.1 Business Rules
+##### 9.1 Business Rules
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
 | 1 | BR_7.2.1 | Secure Payment Field Handling | Ref `CR-10`. Card Number, Expiration, CVC **must** use NMI Collect.js hosted iframes. Custom HTML inputs are strictly forbidden (PCI DSS). |
 | 2 | BR_7.2.2 | Lead Capture | `POST /capture-lead` fires on CTA click to update the abandoned-step record. It does **not** block payment; `/execute-checkout` proceeds regardless of outcome. |
 
-#### 9.2 Data Validation & Component Rules
+##### 9.2 Data Validation & Component Rules
 
 ![Ccreditcard](assets/screenlist/CheckoutFlow-Step6_Creditcard.png)
 
@@ -1307,7 +1341,7 @@ User · NMI
 | 3 | Expiration (MM/YY) | NMI Collect.js iframe | Yes | `CR-10` |
 | 4 | CVC | NMI Collect.js iframe | Yes | `CR-10` |
 
-#### 📝 BA NOTE — Sections to add on rework (10–14)
+##### 📝 BA NOTE — Sections to add on rework (10–14)
 
 - **§10 API Contracts:** Collect.js token → `payment_token` handoff; behaviour when tokenization returns an error (needs a defined message — currently none).
 - **§13 Security:** PCI SAQ-A scope, CSP allow-list for NMI iframe, no PAN/CVC in logs, AVS fields forwarded to gateway.
@@ -1315,9 +1349,9 @@ User · NMI
 
 ---
 
-## UC_7.3 — Apple Pay
+### UC_7.3 — Apple Pay
 
-### 1. OVERVIEW (Mô tả tổng quan)
+#### 1. OVERVIEW (Mô tả tổng quan)
 
 | Field | Content |
 | --- | --- |
@@ -1326,32 +1360,32 @@ User · NMI
 | **Description** | This use case allows the User to pay via the native Apple Pay wallet sheet (iOS Safari / macOS Safari), in order to complete purchase with biometric authentication instead of manual card entry. |
 | **List Screen** | Step 6 — Apple Pay wallet sheet (native Apple UI, not a Stack Trading screen) |
 
-### 2. TRIGGER (Sự kiện kích hoạt)
+#### 2. TRIGGER (Sự kiện kích hoạt)
 
 User clicks the CTA button with Apple Pay selected.
 
-### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
+#### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
 
 Apple Pay is visible (per `BR_7.1.3`).
 
-### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
+#### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
 
 - Case C (success) → UC_8.1.
 - Case A (cancel) → no overlay.
 - Failure → `UC_8.1 §8 EX-1`, raw error (`CR-11`).
 
-### 5. ACTORS (Tác nhân tham gia)
+#### 5. ACTORS (Tác nhân tham gia)
 
 User · NMI (Apple Pay integration)
 
-### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
+#### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
 
 1. User clicks the CTA.
 2. FE fires `POST /capture-lead` (fire-and-forget).
 3. NMI invokes the native Apple Pay sheet (third-party modal).
 4. User authenticates and payment completes (Case C) → sheet closes → `MDL-02` renders → `PAYMENT_RESULT = success` → UC_8.1.
 
-### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
+#### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
 
 | ID | Case | Trigger | Result |
 | --- | --- | --- | --- |
@@ -1359,23 +1393,23 @@ User · NMI (Apple Pay integration)
 | AF-2 | B | N/A | Apple Pay authentication is atomic — no mid-authentication close state exists. |
 | AF-3 | — | Wallet returns its own billing / contact data that differs from Step 5 | Not defined which one is used for AVS / receipt. See `Q-E20`. |
 
-### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
+#### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
 
 | ID | Scenario | Handling | Message |
 | --- | --- | --- | --- |
 | EX-1 | `PAYMENT_RESULT = failure` | Overlay removed → `UC_8.1 §8 EX-1`. Failure banner = raw Apple Pay/NMI response (`CR-11`). | — |
 
-### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
+#### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
 
-#### 9.1 Business Rules
+##### 9.1 Business Rules
 
 No feature-specific rules. Governed by `BR_7.1.3` (visibility), `BR_7.1.4` / `CR-13` (background listening) and UC_8.1 (execution/failure).
 
-#### 9.2 Data Validation & Component Rules
+##### 9.2 Data Validation & Component Rules
 
 N/A — native wallet sheet.
 
-#### 📝 BA NOTE — Sections to add on rework (10–14)
+##### 📝 BA NOTE — Sections to add on rework (10–14)
 
 - **§10 API Contracts:** NMI Apple Pay web integration — merchant validation, payment token → `payment_token`, `PAYMENT_RESULT` event schema (transport not stated → PND-18).
 - **§11 Regional:** Safari (iOS/macOS) only; India excludes wallets (PND-18).
@@ -1384,9 +1418,9 @@ N/A — native wallet sheet.
 
 ---
 
-## UC_7.4 — Google Pay
+### UC_7.4 — Google Pay
 
-### 1. OVERVIEW (Mô tả tổng quan)
+#### 1. OVERVIEW (Mô tả tổng quan)
 
 | Field | Content |
 | --- | --- |
@@ -1395,53 +1429,53 @@ N/A — native wallet sheet.
 | **Description** | This use case allows the User to pay via the native Google Pay wallet sheet (Android Chrome / Chrome desktop), in order to complete purchase with device authentication instead of manual card entry. |
 | **List Screen** | Step 6 — Google Pay wallet sheet (native) |
 
-### 2. TRIGGER (Sự kiện kích hoạt)
+#### 2. TRIGGER (Sự kiện kích hoạt)
 
 User clicks the CTA button with Google Pay selected.
 
-### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
+#### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
 
 Google Pay is visible (per `BR_7.1.3`).
 
-### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
+#### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
 
 Identical to UC_7.3: Case C success → UC_8.1; Case A cancel → no overlay; failure → `UC_8.1 §8 EX-1`.
 
-### 5. ACTORS (Tác nhân tham gia)
+#### 5. ACTORS (Tác nhân tham gia)
 
 User · NMI (Google Pay integration)
 
-### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
+#### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
 
 Identical structure to UC_7.3 §6, substituting Google's native wallet sheet for Apple's.
 
-### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
+#### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
 
 Same case pattern as UC_7.3 §7. Case A = dismiss → no overlay. Case B = N/A (device authentication via biometrics/PIN is atomic).
 
-### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
+#### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
 
 Same as UC_7.3 §8 EX-1 (raw provider message, `CR-11`).
 
-### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
+#### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
 
-#### 9.1 Business Rules
+##### 9.1 Business Rules
 
 No feature-specific rules. Governed by `BR_7.1.3` and UC_8.1.
 
-#### 9.2 Data Validation & Component Rules
+##### 9.2 Data Validation & Component Rules
 
 N/A — native Google UI.
 
-#### 📝 BA NOTE — Sections to add on rework (10–14)
+##### 📝 BA NOTE — Sections to add on rework (10–14)
 
 Same as UC_7.3, with Google Pay specifics (merchant ID, Chrome/Android support matrix). Consider merging UC_7.3 and UC_7.4 into one UC with a wallet-specific table — the two are almost identical, which halves maintenance.
 
 ---
 
-## UC_7.5 — Apply Promo Code
+### UC_7.5 — Apply Promo Code
 
-### 1. OVERVIEW (Mô tả tổng quan)
+#### 1. OVERVIEW (Mô tả tổng quan)
 
 | Field | Content |
 | --- | --- |
@@ -1450,24 +1484,24 @@ Same as UC_7.3, with Google Pay specifics (merchant ID, Chrome/Android support m
 | **Description** | This use case allows the User to apply a discount code to their order, in order to reduce the total price before payment, with the reservation only finalized at the moment of successful payment. |
 | **List Screen** | Step 6 — Promo code panel (expandable) |
 
-### 2. TRIGGER (Sự kiện kích hoạt)
+#### 2. TRIGGER (Sự kiện kích hoạt)
 
 User clicks "Have a promo code?" or the expand button.
 
-### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
+#### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
 
 User is at Step 6.
 
-### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
+#### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
 
 - **Success:** Order Summary shows Discount + Subtotal lines, input locked, button = [Remove].
 - **Failure:** inline error, input stays editable (or locked-with-error for re-validation failures at pay time).
 
-### 5. ACTORS (Tác nhân tham gia)
+#### 5. ACTORS (Tác nhân tham gia)
 
 User · System
 
-### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
+#### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
 
 1. User clicks "Have a promo code?" → input + [Apply] expand.
 2. [Apply] stays disabled until ≥ 1 character is entered (`CR-06`).
@@ -1486,7 +1520,7 @@ flowchart TD
     H --> I[POST /calculate-cart without promo_code, unlock and revert]
 ```
 
-### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
+#### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
 
 | ID | Condition | Behaviour |
 | --- | --- | --- |
@@ -1496,7 +1530,7 @@ flowchart TD
 | AF-4 | Discount brings the total to $0.00 (100% code) | Not defined — whether a payment step / token is still required. See `Q-E19`. |
 | AF-5 | Package (`product_id`) changed at Step 2 after a code was applied | The `MSG-21` mismatch check runs at [Apply] only (`BR_7.5.7`); what happens to the stored code is ⚠️ PND-30. |
 
-### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
+#### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
 
 | ID | Scenario | Handling | Message |
 | --- | --- | --- | --- |
@@ -1507,9 +1541,9 @@ flowchart TD
 | EX-5 | Code invalid / limit reached at `/execute-checkout` (re-validation) | HTTP 422; **banner, not overlay**; Discount + Subtotal rows removed; Tax/Total revert; input stays locked with the now-invalid code — manual [Remove] required. | `MSG-20` |
 | EX-6 | `PRICE_CHANGED` at `/execute-checkout` | Promo re-validation is skipped entirely for that attempt (`BR_7.5.6`); see `UC_8.1 §8 EX-6`. | `MSG-06` |
 
-### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
+#### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
 
-#### 9.1 Business Rules
+##### 9.1 Business Rules
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
@@ -1521,7 +1555,7 @@ flowchart TD
 | 6 | BR_7.5.6 | Promo Re-Validation at Execute-Checkout | Re-validated **and** reserved atomically at step 6.1.b of `/execute-checkout`, only after the price/tax check (6.1.a) passes. If 6.1.a fails (`PRICE_CHANGED`) → promo re-validation skipped. If the code is invalid/limit-reached at this point → see EX-5. |
 | 7 | BR_7.5.7 | Promo Code Mapped 1-to-1 to Product ID | Recognized `product_id` values: `EVAL_L1, EVAL_L2, EVAL_L5, RESET, REBUY, EXTENSION, MARKET_DATA`. Mismatch check runs at [Apply] only (`MSG-21`). |
 
-#### 9.2 Data Validation & Component Rules
+##### 9.2 Data Validation & Component Rules
 
 ![promo](assets/screenlist/CheckoutFlow-Step6_Creditcard.png)
 
@@ -1534,7 +1568,7 @@ flowchart TD
 | 5 | Discount (Order Summary row) | Static Text | N/A | `CR-04`. Visible when `discount_amount > 0`; between base price and Tax rows. Label `Promo code (<code>)`; amount `−$XX.XX`. | N/A |
 | 6 | Subtotal (Order Summary row) | Static Text | N/A | `CR-04`. Same show/hide rule as Discount; directly below it. Value `(Base_Price + Addon_Prices) − discount_amount`. | N/A |
 
-#### 📝 BA NOTE — Sections to add on rework (10–14)
+##### 📝 BA NOTE — Sections to add on rework (10–14)
 
 - **§10 API Contracts:** `/calculate-cart` with/without `promo_code` — 200 / 422 (which error code maps to `MSG-18` vs `MSG-19` vs `MSG-21`) / 5xx; `promo_codes` and `promo_code_usage_log` schema.
 - **§12 State Machine:** promo states — Empty → Applying → Applied (locked) → Invalid-at-pay (locked, banner) → Removed; plus usage-counter states (Reserved → Confirmed / Restored / Held-until-webhook).
@@ -1543,11 +1577,11 @@ flowchart TD
 
 ---
 
-# STEP 7 — ORDER PROCESSING & PROVISIONING
+## STEP 7 — ORDER PROCESSING & PROVISIONING
 
-## UC_8.1 — Phase 1: Payment Execution
+### UC_8.1 — Phase 1: Payment Execution
 
-### 1. OVERVIEW (Mô tả tổng quan)
+#### 1. OVERVIEW (Mô tả tổng quan)
 
 | Field | Content |
 | --- | --- |
@@ -1556,27 +1590,27 @@ flowchart TD
 | **Description** | This use case allows the System to execute the actual charge against the selected gateway with full server-side integrity checks, in order to guarantee no duplicate charges, correct pricing, and correct promo-code accounting regardless of payment method or network reliability. |
 | **List Screen** | Processing overlay (`MDL-02`), Payment Successful overlay (`MDL-03`), Failure banner, Email-lock overlay (`MDL-04`), Post-payment restricted-region states (`FPS-03` / `FPS-04`) |
 
-### 2. TRIGGER (Sự kiện kích hoạt)
+#### 2. TRIGGER (Sự kiện kích hoạt)
 
 User clicks the CTA button on Step 6.
 
-### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
+#### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
 
 - Payment method selected; all required fields completed.
 - `/calculate-cart` already succeeded (pricing/tax/totals up to date).
 - No active email lock.
 
-### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
+#### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
 
 - **Success:** payment executed → confirmation state; Flow 1 triggered via webhook.
 - **Failure:** failure banner (`CR-11`); retry allowed.
 - **Email lock:** 5+ consecutive failures → all inputs locked 15 min (`MSG-14`).
 
-### 5. ACTORS (Tác nhân tham gia)
+#### 5. ACTORS (Tác nhân tham gia)
 
 User · System · NMI · Quaderno
 
-### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
+#### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
 
 **Client side**
 1. User clicks the CTA.
@@ -1615,7 +1649,7 @@ User · System · NMI · Quaderno
 **Client side (result)**
 8. Response handling: failure → failure banner (EX-1); success → `MDL-02` replaced by `MDL-03` (`MSG-16`), auto-dismiss after ~2 s, then continue to UC_8.2 (⚠️ PND-10).
 
-### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
+#### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
 
 | ID | Condition | Behaviour |
 | --- | --- | --- |
@@ -1624,7 +1658,7 @@ User · System · NMI · Quaderno
 | AF-3 | Payment succeeds | `MDL-03` (`MSG-16`) auto-dismisses after ~2 s; Flow 1 is triggered via webhook. If the webhook / Email 2 delivery fails: `Q-E24`. |
 | AF-4 | User closes / loses the tab while a card payment is processing | Not defined for CC (`CR-13` is written for asynchronous wallet confirmation) and there is no login to resume. See `Q-E25`. |
 
-### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
+#### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
 
 | ID | Scenario | Handling | Message |
 | --- | --- | --- | --- |
@@ -1637,9 +1671,9 @@ User · System · NMI · Quaderno
 | EX-7 | Promo invalid / limit reached at execution | See `UC_7.5 §8 EX-5`. | `MSG-20` |
 | EX-8 | Post-payment restricted-region match | Full-page "refunding" state, then "refunded" state. ⚠️ PND-05 (why a 3rd sanctions check exists). Side-effects on promo usage / provisioning: `Q-E29`. | `MSG-25` → `MSG-26` (`FPS-03` → `FPS-04`) |
 
-### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
+#### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
 
-#### 9.1 Business Rules
+##### 9.1 Business Rules
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
@@ -1648,7 +1682,7 @@ User · System · NMI · Quaderno
 | 3 | BR_8.1.3 | CTA Re-enable on Failure Only | Not re-enabled on overlay dismissal or back-navigation while a payment is in progress — only on an actual failure response (including the 10-min timeout). |
 | 4 | BR_8.1.4 | Retry Allowed When Prior Payment Failed or In-Progress | Dedup check blocks only when a prior attempt for this `user_id` already succeeded (`MSG-23`). |
 
-#### 9.2 Data Validation & Component Rules
+##### 9.2 Data Validation & Component Rules
 
 ![Payment](assets/screenlist/CheckoutFlow_Step7_PaymentExxecution.png)
 
@@ -1663,7 +1697,7 @@ User · System · NMI · Quaderno
 
 Payload validation: `product_id`, `payment_method`, `billing_country` are mandatory; `payment_token` is optional (omitted for wallet/vaulted flows); UTM, `timestamp_utc`, Everflow fields are optional and never block checkout (fail-open).
 
-#### 📝 BA NOTE — Sections to add on rework (10–14)
+##### 📝 BA NOTE — Sections to add on rework (10–14)
 
 - **§10 API Contracts (priority):** full `POST /execute-checkout` request/response (`status`, `error_code`, `transaction_id`, `gateway_payload`), error codes (`PRICE_CHANGED`, 409, 422, decline), `PAYMENT_RESULT` event, and the exact server-side sequence (PND-09). The source-spec payload has fields missing in the RFQ contract → PND-21. Also: neither `/calculate-cart` nor `/execute-checkout` carries `platform` or `asset_class` — how Step 7 knows which platform to provision must be confirmed (`Q-E11`).
 - **§12 State Machine (priority):** Payment attempt: Idle → Processing → Success / Failed / Timed-out / Duplicate / Refunding → Refunded; plus email-lock counter and promo-reservation states.
@@ -1673,9 +1707,9 @@ Payload validation: `product_id`, `payment_method`, `billing_country` are mandat
 
 ---
 
-## UC_8.2 — Phase 2: Account Claim
+### UC_8.2 — Phase 2: Account Claim
 
-### 1. OVERVIEW (Mô tả tổng quan)
+#### 1. OVERVIEW (Mô tả tổng quan)
 
 | Field | Content |
 | --- | --- |
@@ -1684,23 +1718,23 @@ Payload validation: `product_id`, `payment_method`, `billing_country` are mandat
 | **Description** | This use case allows the User to activate their newly provisioned account by clicking the emailed link and providing a phone number, in order to proceed to Phase 3 (Provisioning & Redirect to Login) — notably WITHOUT setting a password at this step. |
 | **List Screen** | Step 7 Phase 2 — "Create an Account" (Phone Number only) |
 
-### 2. TRIGGER (Sự kiện kích hoạt)
+#### 2. TRIGGER (Sự kiện kích hoạt)
 
 User clicks the "Claim Your Account" link in Email 2.
 
-### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
+#### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
 
 Email 2 (Claim Account) has been received and contains a valid JWT link.
 
-### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
+#### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
 
 `POST /claim-account` returned HTTP 200 → transitions to UC_8.3 (Phase 3).
 
-### 5. ACTORS (Tác nhân tham gia)
+#### 5. ACTORS (Tác nhân tham gia)
 
 User · System
 
-### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
+#### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
 
 1. User clicks the emailed link.
 2. JWT is valid (within 48 h) → "Create an Account" screen renders with the Phone Number field only.
@@ -1715,7 +1749,7 @@ flowchart TD
     F -- 200 fresh or resumed --> G([UC_8.3])
 ```
 
-### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
+#### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
 
 | ID | Condition | Behaviour |
 | --- | --- | --- |
@@ -1724,23 +1758,23 @@ flowchart TD
 | AF-3 | Admin-side resend | Separate Admin-only `POST /resend-welcome` (Admin JWT). Out of user-facing scope. |
 | AF-4 | User has not received Email 2 but the link has not expired | [Resend link] exists only on the expired state (`MDL-07`). Whether a resend is reachable earlier, and whether a new link invalidates the old one: `Q-E26`. |
 
-### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
+#### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
 
 | ID | Scenario | Handling | Message |
 | --- | --- | --- | --- |
 | EX-1 | JWT expired (> 48 h) | `MDL-07` replaces the form; [Resend link]. | `MSG-27` (email) |
 | EX-2 | `/claim-account` returns an error / phone invalid | Not defined in the source spec. ⚠️ PND-13. Duplicate phone numbers: `Q-E28`. | — |
 
-### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
+#### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
 
-#### 9.1 Business Rules
+##### 9.1 Business Rules
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
 | 1 | BR_8.2.1 | Password Field Removed | Phase 2 no longer collects a password — only a phone number. ⚠️ PND-06 (where is the login credential set?) and PND-17 (RFQ still specifies password + in-page Phase 2). |
 | 2 | BR_8.2.2 | Anti-Enumeration on Resend | `CR-12`. `POST /resend-welcome` (Admin JWT, admin-only) vs `POST /public/resend-activation-link` (no auth, always HTTP 200 regardless of whether the email exists). |
 
-#### 9.2 Data Validation & Component Rules
+##### 9.2 Data Validation & Component Rules
 
 ![createacc](assets/screenlist/Create_an_Account.png)
 
@@ -1750,7 +1784,7 @@ flowchart TD
 | 2 | [Activate Account] / [Submit] | Button (Primary) | N/A | `CR-06`. Click → `POST /claim-account`; success → UC_8.3. | N/A |
 | 3 | "Link Expired" state (`MDL-07`) | Static Text + Button | N/A | [Resend link] → `POST /public/resend-activation-link` → always HTTP 200 (`CR-12`) → `MSG-27` if the address exists. | N/A |
 
-#### 📝 BA NOTE — Sections to add on rework (10–14)
+##### 📝 BA NOTE — Sections to add on rework (10–14)
 
 - **§10 API Contracts:** `POST /claim-account` (the source spec sends no password; RFQ contract has `new_password` and `shirt_size`) and `POST /public/resend-activation-link`; JWT claims + 48 h expiry → PND-21.
 - **§12 State Machine:** account status Guest → (claim) → provisioning → Active_SIM; link status Valid → Expired → Re-issued.
@@ -1759,9 +1793,9 @@ flowchart TD
 
 ---
 
-## UC_8.3 — Phase 3: Provisioning & Redirect to Login
+### UC_8.3 — Phase 3: Provisioning & Redirect to Login
 
-### 1. OVERVIEW (Mô tả tổng quan)
+#### 1. OVERVIEW (Mô tả tổng quan)
 
 | Field | Content |
 | --- | --- |
@@ -1770,24 +1804,24 @@ flowchart TD
 | **Description** | This use case allows the System to finalize account provisioning (Auth0 + SIM) and hand the user off to the login screen, in order to complete the checkout-to-active-account journey. |
 | **List Screen** | Step 7 Phase 3 — "Setting up your trading floor" interstitial |
 
-### 2. TRIGGER (Sự kiện kích hoạt)
+#### 2. TRIGGER (Sự kiện kích hoạt)
 
 Successful transition from UC_8.2.
 
-### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
+#### 3. PRE-CONDITIONS (Điều kiện tiên quyết)
 
 Entered via `POST /claim-account` HTTP 200 (fresh) **or** by reopening an already-claimed link (resumed).
 
-### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
+#### 4. POST-CONDITIONS (Trạng thái sau hoàn thành)
 
 - Success: user is redirected to the Auth0 login screen.
 - Failure: `MDL-05` renders instead.
 
-### 5. ACTORS (Tác nhân tham gia)
+#### 5. ACTORS (Tác nhân tham gia)
 
 User · System · Auth0
 
-### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
+#### 6. MAIN FLOW / HAPPY PATH (Luồng xử lý chính)
 
 1. "Setting up your trading floor" interstitial (`MDL-06`) renders (4-step sequence), masking provisioning latency. ⚠️ PND-08
 2. Backend completes Auth0 account creation and SIM account provisioning.
@@ -1805,7 +1839,7 @@ flowchart TD
     G -- Yes --> H[MDL-05 / MSG-28]
 ```
 
-### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
+#### 7. ALTERNATIVE FLOWS (Luồng phụ / Luồng thay thế)
 
 | ID | Condition | Behaviour |
 | --- | --- | --- |
@@ -1813,22 +1847,22 @@ flowchart TD
 | AF-2 | Reload while `account_status = 'Guest'` | Keep showing the provisioning/waiting state **indefinitely** — no frontend timeout; failure handling fully delegated to backend auto-retry. After retries are exhausted and `MDL-05` was closed, a reload would show the wait state again with no exit: `Q-E27`. |
 | AF-3 | Email already has an Auth0 account (e.g. returning `Failed` user) | Not defined. See `Q-E30`. |
 
-### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
+#### 8. EXCEPTION FLOWS (Luồng ngoại lệ / Xử lý lỗi)
 
 | ID | Scenario | Handling | Message |
 | --- | --- | --- | --- |
 | EX-1 | Backend auto-retry exhausted without successful provisioning | `MDL-05` renders instead of the redirect; user closes it and contacts support. | `MSG-28` |
 
-### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
+#### 9. BUSINESS RULES & DATA VALIDATION (Quy tắc nghiệp vụ & Ràng buộc dữ liệu)
 
-#### 9.1 Business Rules
+##### 9.1 Business Rules
 
 | # | BR Code | Function | Description |
 | --- | --- | --- | --- |
 | 1 | BR_8.3.1 | No Frontend Timeout at Phase 3 | Reload while `Guest` → wait state indefinitely. Reload while `Active_SIM` → immediate redirect to Auth0 login. |
 | 2 | BR_8.3.2 | Backend Auto-Retry on Provisioning Failure | Number of retries and interval are not defined. ⚠️ PND-07 |
 
-#### 9.2 Data Validation & Component Rules
+##### 9.2 Data Validation & Component Rules
 
 ![setup](assets/screenlist/Loading_screen.png)
 
@@ -1837,7 +1871,7 @@ flowchart TD
 | 1 | "Setting up your trading floor" interstitial (`MDL-06`) | Static/Animated Display | 4-step animated sequence (labels ⚠️ PND-08). Holds indefinitely if `Guest` on reload. |
 | 2 | "Account Creation Failure" (`MDL-05`) | Modal | `MSG-28`. Renders only after backend auto-retry is exhausted. |
 
-#### 📝 BA NOTE — Sections to add on rework (10–14)
+##### 📝 BA NOTE — Sections to add on rework (10–14)
 
 - **§10 API Contracts:** how FE learns the provisioning result (polling vs push), `account_status` read endpoint, Auth0 redirect URL/params, `Provision Simulation User` response (credentials returned as ciphertext only, per Zapier V7).
 - **§12 State Machine (priority):** `Guest → Provisioning → Active_SIM` / `Provisioning-Failed`; retry counter; idempotency so a resumed link never creates duplicate Auth0/SIM accounts.

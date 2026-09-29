@@ -1,5 +1,6 @@
 site_name: Stack Trading - Checkout Flow 
 site_url: https://ptxtung131-hub.github.io/BA_DOCS/
+
 theme:
   name: material
   language: vi
@@ -28,15 +29,20 @@ theme:
     - navigation.tabs          # Menu dạng tab ngang ở phía trên
     - navigation.tabs.sticky   # Cố định thanh tab khi cuộn trang
     - navigation.sections      # Chia section ở menu bên trái
+    - navigation.expand        # Tự động mở rộng cây thư mục sidebar
     - navigation.top           # Nút cuộn nhanh lên đầu trang
     - navigation.tracking      # Tự động highlight mục tương ứng khi cuộn
-    - toc.integrate            # Gộp mục lục bài viết vào sidebar bên trái
+    - toc.integrate            # Gộp Mục lục bài viết (Step -> UC) trực tiếp vào Sidebar bên trái
+    - toc.follow               # Tự động cuộn highlight theo vị trí đọc
     - search.suggest           # Gợi ý từ khóa khi tìm kiếm
     - search.highlight         # Highlight từ khóa trong kết quả tìm kiếm
     - content.code.copy        # Nút copy nhanh khối mã code
 
 markdown_extensions:
   - attr_list                  # Hỗ trợ { target="_blank" }
+  - toc:
+      permalink: true          # Tạo anchor link (#) cho các thẻ tiêu đề
+      toc_depth: 3             # Quét sâu từ H1 (STEP) -> H2 (UC) -> H3 (Mục chi tiết)
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
